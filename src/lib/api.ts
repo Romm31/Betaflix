@@ -7,6 +7,7 @@ import {
   Resolution,
   Anime,
   AnimeDetail,
+  normalizeAnimeList,
 } from './types';
 
 const BASE_URL = 'https://api.sansekai.my.id/api';
@@ -45,7 +46,8 @@ export async function getLatestAnime(page: number = 1): Promise<Anime[]> {
       `/anime/latest?page=${page}`,
       { revalidate: 60 }
     );
-    return response.data || [];
+    // Response is a direct array
+    return normalizeAnimeList(response || []);
   } catch (error) {
     console.error('Failed to fetch latest anime:', error);
     return [];
@@ -61,7 +63,7 @@ export async function searchAnime(query: string): Promise<Anime[]> {
       `/anime/search?query=${encodeURIComponent(query)}`,
       { revalidate: 300 }
     );
-    return response.data || [];
+    return normalizeAnimeList(response || []);
   } catch (error) {
     console.error('Failed to search anime:', error);
     return [];
@@ -75,7 +77,12 @@ export async function getAnimeDetail(urlId: string): Promise<AnimeDetail | null>
       `/anime/detail?urlId=${encodeURIComponent(urlId)}`,
       { revalidate: 30 }
     );
-    return response.data || null;
+    // Handle both wrapped and direct response
+    if (response.data) {
+      return response.data;
+    }
+    // If response is the detail directly
+    return response as unknown as AnimeDetail;
   } catch {
     return null;
   }
@@ -88,7 +95,7 @@ export async function getMovies(): Promise<Anime[]> {
       '/anime/movie',
       { revalidate: 60 }
     );
-    return response.data || [];
+    return normalizeAnimeList(response || []);
   } catch (error) {
     console.error('Failed to fetch movies:', error);
     return [];
