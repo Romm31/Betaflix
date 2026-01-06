@@ -123,7 +123,7 @@ export async function getAnimeDetail(urlId: string): Promise<AnimeDetail | null>
   }
 }
 
-// Get all anime movies with pagination
+// Get all anime movies with pagination and fallback
 export async function getMovies(page: number = 1, limit?: number): Promise<Anime[]> {
   try {
     const response = await fetchAPI<MovieResponse>(
@@ -134,7 +134,20 @@ export async function getMovies(page: number = 1, limit?: number): Promise<Anime
     const normalized = normalizeAnimeList(response || [], true);
     return limit ? normalized.slice(0, limit) : normalized;
   } catch (error) {
-    console.error('Failed to fetch movies:', error);
+    // Log as warning instead of error to not alarm user, since we handle it
+    console.warn(`Failed to fetch movies endpoint (page ${page}), trying fallback...`);
+
+    // Fallback strategy: If specific movie endpoint fails, try to find movies in latest anime
+    // We only do this for page 1 to ensure at least SOME content shows up
+    if (page === 1) {
+      try {
+        const latest = await getLatestAnime(1);
+        const movies = latest.filter(item => item.contentType === 'movie' || item.totalEpisodes === 1 || item.type === 'Movie');
+        return limit ? movies.slice(0, limit) : movies;
+      } catch (fbError) {
+        console.warn('Fallback search failed');
+      }
+    }
     return [];
   }
 }
