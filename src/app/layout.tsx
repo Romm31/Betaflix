@@ -13,22 +13,22 @@ const inter = Inter({
 
 export const metadata: Metadata = {
   title: {
-    default: "Betaflix - Streaming Anime Rasa Nusantara",
+    default: "Betaflix - Streaming Anime Gratis & Terlengkap",
     template: "%s | Betaflix"
   },
-  description: "Nikmati koleksi anime terlengkap dengan sentuhan Nusantara. Streaming gratis, kualitas terbaik.",
-  keywords: ["anime", "streaming", "indonesia", "nusantara", "betaflix"],
+  description: "Nikmati koleksi anime terlengkap dengan update harian. Streaming gratis, kualitas terbaik, dan subtitle Indonesia.",
+  keywords: ["anime", "streaming", "indonesia", "nonton anime", "betaflix", "sub indo"],
   authors: [{ name: "Betaflix Team" }],
   openGraph: {
-    title: "Betaflix - Streaming Anime Rasa Nusantara",
-    description: "Nikmati koleksi anime terlengkap dengan sentuhan Nusantara",
+    title: "Betaflix - Streaming Anime Gratis & Terlengkap",
+    description: "Nikmati koleksi anime terlengkap dengan update harian dan subtitle Indonesia",
     type: "website",
     locale: "id_ID",
   },
   twitter: {
     card: "summary_large_image",
-    title: "Betaflix - Streaming Anime Rasa Nusantara",
-    description: "Nikmati koleksi anime terlengkap dengan sentuhan Nusantara",
+    title: "Betaflix - Streaming Anime Gratis & Terlengkap",
+    description: "Nikmati koleksi anime terlengkap dengan update harian dan subtitle Indonesia",
   },
 };
 

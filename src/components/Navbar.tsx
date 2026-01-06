@@ -15,6 +15,7 @@ import {
   Sparkles,
   Tv
 } from 'lucide-react';
+import { Logo } from '@/components/Logo';
 import { Button } from '@/components/ui/button';
 import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
 import { cn } from '@/lib/utils';
@@ -64,19 +65,15 @@ export function Navbar() {
     >
       <div className="container mx-auto px-4">
         <nav className="flex items-center justify-between h-16">
+
           {/* Logo */}
           <Link href="/" className="flex items-center gap-2 group">
             <motion.div
-              whileHover={{ rotate: 360 }}
-              transition={{ duration: 0.5 }}
-              className="w-10 h-10 rounded-xl bg-primary flex items-center justify-center shadow-lg shadow-primary/20"
+              whileHover={{ scale: 1.05 }}
+              transition={{ duration: 0.2 }}
             >
-              <Sparkles className="w-6 h-6 text-primary-foreground" />
+              <Logo size="lg" />
             </motion.div>
-            <span className="text-2xl font-bold tracking-tight">
-              <span className="text-primary">Beta</span>
-              <span className="text-foreground drop-shadow-md">flix</span>
-            </span>
           </Link>
 
           {/* Desktop Navigation */}
@@ -188,7 +185,7 @@ export function Navbar() {
 
                   <div className="pt-4 border-t border-border">
                     <p className="text-xs text-muted-foreground px-4">
-                      Streaming Anime Rasa Nusantara
+                      Streaming Anime Favoritmu dengan Kualitas Terbaik
                     </p>
                   </div>
                 </div>

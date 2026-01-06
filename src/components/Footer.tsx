@@ -1,5 +1,6 @@
 import Link from 'next/link';
 import { Sparkles, Github, Twitter, Instagram, ArrowUpRight } from 'lucide-react';
+import { Logo } from '@/components/Logo';
 import { Button } from '@/components/ui/button';
 
 export function Footer() {
@@ -14,17 +15,12 @@ export function Footer() {
         <div className="grid grid-cols-1 md:grid-cols-12 gap-12 mb-16">
           {/* Brand Section - Takes 5 cols */}
           <div className="md:col-span-5 space-y-6 flex flex-col items-center md:items-start text-center md:text-left">
-            <Link href="/" className="flex items-center gap-2">
-              <div className="w-10 h-10 rounded-xl bg-primary flex items-center justify-center shadow-lg shadow-primary/20">
-                <Sparkles className="w-6 h-6 text-primary-foreground" />
-              </div>
-              <span className="text-2xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-foreground to-foreground/60">
-                Betaflix
-              </span>
+            <Link href="/" className="inline-block">
+              <Logo size="lg" />
             </Link>
             <p className="text-muted-foreground leading-relaxed max-w-sm">
-              Platform streaming anime dengan sentuhan Nusantara. 
-              Nikmati pengalaman menonton terbaik dengan koleksi terlengkap dan subtitle Indonesia berkualitas.
+              Platform streaming anime terbaik dan terlengkap. 
+              Nikmati pengalaman menonton terbaik dengan koleksi terbaru dan subtitle Indonesia berkualitas.
             </p>
             <div className="flex gap-4">
               <a 
