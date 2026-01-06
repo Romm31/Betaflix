@@ -1,36 +1,149 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# 🎬 Betaflix
 
-## Getting Started
+**Streaming Anime Rasa Nusantara** — Aplikasi streaming anime dengan tampilan mirip Netflix dan tema Indonesia yang elegan.
 
-First, run the development server:
+![Next.js](https://img.shields.io/badge/Next.js-14-black?logo=next.js)
+![TypeScript](https://img.shields.io/badge/TypeScript-5-blue?logo=typescript)
+![Tailwind CSS](https://img.shields.io/badge/Tailwind-3-38bdf8?logo=tailwindcss)
+![Vercel](https://img.shields.io/badge/Deploy-Vercel-black?logo=vercel)
+
+## ✨ Features
+
+- 🎨 **Netflix-like UI** — Layout, hover effects, dan carousel seperti Netflix
+- 🇮🇩 **Tema Nusantara** — Warna merah bata, emas kunyit, pattern batik subtle
+- 🌙 **Dark/Light Mode** — Toggle tema dengan next-themes
+- 📱 **Fully Responsive** — Mobile-first design
+- ⚡ **Fast Loading** — Server-side rendering dengan caching
+- 🔍 **Search Debounce** — Pencarian real-time dengan debounce 400ms
+- 🎥 **Video Player** — Player dengan selector resolusi (360p-1080p)
+
+## 🚀 Getting Started
+
+### Prerequisites
+
+- Node.js 18+
+- npm atau yarn
+
+### Installation
 
 ```bash
+# Clone repository
+git clone <repo-url>
+cd betaflix
+
+# Install dependencies
+npm install
+
+# Run development server
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Buka [http://localhost:3000](http://localhost:3000) di browser.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+### Build for Production
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+```bash
+# Build
+npm run build
 
-## Learn More
+# Start production server
+npm run start
+```
 
-To learn more about Next.js, take a look at the following resources:
+## 📦 Tech Stack
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+- **Framework**: Next.js 14 (App Router)
+- **Language**: TypeScript
+- **Styling**: Tailwind CSS
+- **Components**: shadcn/ui
+- **Animations**: Framer Motion
+- **Theme**: next-themes
+- **Icons**: Lucide React
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+## 📁 Project Structure
 
-## Deploy on Vercel
+```
+src/
+├── app/
+│   ├── layout.tsx          # Root layout dengan ThemeProvider
+│   ├── page.tsx            # Home page
+│   ├── loading.tsx         # Loading skeleton
+│   ├── error.tsx           # Error boundary
+│   ├── not-found.tsx       # 404 page
+│   ├── search/page.tsx     # Search page
+│   ├── movies/page.tsx     # Movies listing
+│   ├── anime/[urlId]/      # Anime detail
+│   ├── watch/[chapterUrlId]/ # Video player
+│   └── api/proxy/          # CORS proxy fallback
+├── components/
+│   ├── ui/                 # shadcn components
+│   ├── Navbar.tsx          # Navigation bar
+│   ├── Footer.tsx          # Footer
+│   ├── HeroBanner.tsx      # Hero section
+│   ├── RowCarousel.tsx     # Horizontal carousel
+│   ├── AnimeCard.tsx       # Poster card
+│   ├── AnimeGrid.tsx       # Grid layout
+│   ├── VideoPlayer.tsx     # Video player
+│   ├── Skeletons.tsx       # Loading skeletons
+│   └── providers.tsx       # Theme provider
+└── lib/
+    ├── types.ts            # TypeScript types
+    ├── api.ts              # API wrapper
+    └── utils.ts            # Utility functions
+```
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+## 🎨 Theme Colors
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+| Color      | Light Mode | Dark Mode | Usage            |
+| ---------- | ---------- | --------- | ---------------- |
+| Primary    | `#8B2323`  | `#B83A3A` | Merah bata/marun |
+| Accent     | `#D4A84B`  | `#E5B85C` | Emas kunyit      |
+| Background | `#FDF8F3`  | `#0D0D0D` | Krem / Charcoal  |
+
+## 🔧 API Endpoints
+
+Base URL: `https://api.sansekai.my.id`
+
+| Endpoint                                     | Description     |
+| -------------------------------------------- | --------------- |
+| `/anime/latest?page=1`                       | Anime terbaru   |
+| `/anime/search?query=...`                    | Cari anime      |
+| `/anime/detail?urlId=...`                    | Detail anime    |
+| `/anime/movie`                               | Daftar movie    |
+| `/anime/getvideo?chapterUrlId=...&reso=480p` | Video streaming |
+
+## 📝 Caching Strategy
+
+- **Home page**: `revalidate: 60` (1 menit)
+- **Movies**: `revalidate: 60` (1 menit)
+- **Search**: `revalidate: 300` (5 menit)
+- **Detail**: `revalidate: 30` (30 detik)
+- **Video**: No cache (fresh setiap request)
+
+## ➕ Menambah Kategori Row Baru
+
+1. Buka `src/app/page.tsx`
+2. Fetch data di `HomeContent`:
+   ```tsx
+   const newCategory = await fetchNewCategory();
+   ```
+3. Tambah `RowCarousel`:
+   ```tsx
+   <RowCarousel title="🆕 Kategori Baru" animeList={newCategory} />
+   ```
+
+## 🚀 Deploy ke Vercel
+
+1. Push ke GitHub
+2. Import project di [Vercel](https://vercel.com)
+3. Deploy otomatis! ✅
+
+Tidak perlu environment variables karena API public.
+
+## 📄 License
+
+MIT License
+
+---
+
+**Made with ❤️ in Indonesia**

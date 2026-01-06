@@ -9,7 +9,7 @@ import {
   AnimeDetail,
 } from './types';
 
-const BASE_URL = 'https://api.sansekai.my.id';
+const BASE_URL = 'https://api.sansekai.my.id/api';
 
 // Generic fetch wrapper with error handling
 async function fetchAPI<T>(
@@ -40,22 +40,32 @@ async function fetchAPI<T>(
 
 // Get latest anime with pagination
 export async function getLatestAnime(page: number = 1): Promise<Anime[]> {
-  const response = await fetchAPI<LatestAnimeResponse>(
-    `/anime/latest?page=${page}`,
-    { revalidate: 60 }
-  );
-  return response.data || [];
+  try {
+    const response = await fetchAPI<LatestAnimeResponse>(
+      `/anime/latest?page=${page}`,
+      { revalidate: 60 }
+    );
+    return response.data || [];
+  } catch (error) {
+    console.error('Failed to fetch latest anime:', error);
+    return [];
+  }
 }
 
 // Search anime by query
 export async function searchAnime(query: string): Promise<Anime[]> {
   if (!query.trim()) return [];
   
-  const response = await fetchAPI<SearchResponse>(
-    `/anime/search?query=${encodeURIComponent(query)}`,
-    { revalidate: 300 }
-  );
-  return response.data || [];
+  try {
+    const response = await fetchAPI<SearchResponse>(
+      `/anime/search?query=${encodeURIComponent(query)}`,
+      { revalidate: 300 }
+    );
+    return response.data || [];
+  } catch (error) {
+    console.error('Failed to search anime:', error);
+    return [];
+  }
 }
 
 // Get anime detail by urlId
@@ -73,11 +83,16 @@ export async function getAnimeDetail(urlId: string): Promise<AnimeDetail | null>
 
 // Get all anime movies
 export async function getMovies(): Promise<Anime[]> {
-  const response = await fetchAPI<MovieResponse>(
-    '/anime/movie',
-    { revalidate: 60 }
-  );
-  return response.data || [];
+  try {
+    const response = await fetchAPI<MovieResponse>(
+      '/anime/movie',
+      { revalidate: 60 }
+    );
+    return response.data || [];
+  } catch (error) {
+    console.error('Failed to fetch movies:', error);
+    return [];
+  }
 }
 
 // Get video streaming URL
