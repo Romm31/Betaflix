@@ -71,25 +71,25 @@ export default function AnimePage() {
     <div className="min-h-screen pt-20 pb-12">
       <div className="container mx-auto px-4">
         {/* Header */}
-        <div className="mb-6">
-          <h1 className="text-3xl md:text-4xl font-bold text-foreground flex items-center gap-3">
-            <Tv className="w-8 h-8 text-primary" />
+        <div className="mb-8 text-center">
+          <h1 className="text-3xl md:text-5xl font-bold text-foreground flex items-center justify-center gap-3 mb-4">
+            <Tv className="w-8 h-8 md:w-10 md:h-10 text-primary" />
             Anime Series
           </h1>
-          <p className="text-muted-foreground mt-2">
+          <p className="text-muted-foreground text-lg max-w-2xl mx-auto">
             Koleksi lengkap anime series dengan episode terbaru
           </p>
         </div>
 
         {/* Search */}
-        <div className="relative max-w-md mb-6">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+        <div className="relative max-w-xl mx-auto mb-12">
+          <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
           <Input
             type="text"
-            placeholder="Cari anime..."
+            placeholder="Cari judul anime series..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="pl-10"
+            className="pl-12 h-12 text-lg rounded-full border-white/10 bg-white/5 backdrop-blur-sm focus:bg-white/10 transition-all shadow-lg"
           />
         </div>
 

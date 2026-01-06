@@ -15,17 +15,35 @@ interface EpisodeAccordionProps {
   chapters: Chapter[];
 }
 
+// Helper to get episode number from title
+function getEpisodeNumber(title: string): number {
+  const match = title.match(/(?:Episode\s+|^)(\d+)/i);
+  return match ? parseInt(match[1], 10) : 0;
+}
+
 // Group episodes into chunks of 10
 function groupEpisodes(chapters: Chapter[]): { label: string; episodes: Chapter[] }[] {
+  // Sort chapters ascending by episode number
+  const sortedChapters = [...chapters].sort((a, b) => {
+    return getEpisodeNumber(a.title) - getEpisodeNumber(b.title);
+  });
+
   const groups: { label: string; episodes: Chapter[] }[] = [];
   const chunkSize = 10;
   
-  for (let i = 0; i < chapters.length; i += chunkSize) {
-    const chunk = chapters.slice(i, i + chunkSize);
-    const start = i + 1;
-    const end = Math.min(i + chunkSize, chapters.length);
+  for (let i = 0; i < sortedChapters.length; i += chunkSize) {
+    const chunk = sortedChapters.slice(i, i + chunkSize);
+    
+    // Get start and end from actual episode numbers in the chunk if possible
+    const startEp = getEpisodeNumber(chunk[0].title);
+    const endEp = getEpisodeNumber(chunk[chunk.length - 1].title);
+    
+    // Fallback to index-based if parsing fails or returns 0
+    const labelStart = startEp > 0 ? startEp : i + 1;
+    const labelEnd = endEp > 0 ? endEp : Math.min(i + chunkSize, sortedChapters.length);
+
     groups.push({
-      label: `Episode ${start} - ${end}`,
+      label: `Episode ${labelStart} - ${labelEnd}`,
       episodes: chunk,
     });
   }

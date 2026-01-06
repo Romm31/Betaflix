@@ -6,11 +6,11 @@ export type ContentType = 'anime' | 'movie';
 
 // Max items constants
 export const MAX_ITEMS = {
-  // Homepage rows (ringkas)
-  ANIME_TERBARU: 10,
-  TRENDING: 8,
-  MOVIES_HOME: 8,
-  REKOMENDASI: 8,
+  // Homepage rows (increased to fill wide screens)
+  ANIME_TERBARU: 20,
+  TRENDING: 15,
+  MOVIES_HOME: 15,
+  REKOMENDASI: 15,
   HERO_CAROUSEL: 5,
   // Category pages (pagination)
   ANIME_PER_PAGE: 24,

@@ -62,12 +62,12 @@ export default function MoviesPage() {
     <div className="min-h-screen pt-20 pb-12">
       <div className="container mx-auto px-4">
         {/* Header */}
-        <div className="mb-6">
-          <h1 className="text-3xl md:text-4xl font-bold text-foreground flex items-center gap-3">
-            <Film className="w-8 h-8 text-accent" />
-            Anime Movies
+        <div className="mb-8 text-center">
+          <h1 className="text-3xl md:text-5xl font-bold text-foreground flex items-center justify-center gap-3 mb-4">
+            <Film className="w-8 h-8 md:w-10 md:h-10 text-primary" />
+            Movie Anime
           </h1>
-          <p className="text-muted-foreground mt-2">
+          <p className="text-muted-foreground text-lg max-w-2xl mx-auto">
             Koleksi lengkap anime movie terbaik
             {!isLoading && allMovies.length > 0 && (
               <span className="ml-1">({allMovies.length} film tersedia)</span>
@@ -76,14 +76,14 @@ export default function MoviesPage() {
         </div>
 
         {/* Search */}
-        <div className="relative max-w-md mb-6">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+        <div className="relative max-w-xl mx-auto mb-12">
+          <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
           <Input
             type="text"
-            placeholder="Cari movie..."
+            placeholder="Cari judul movie..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="pl-10"
+            className="pl-12 h-12 text-lg rounded-full border-white/10 bg-white/5 backdrop-blur-sm focus:bg-white/10 transition-all shadow-lg"
           />
         </div>
 

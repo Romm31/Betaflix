@@ -7,6 +7,7 @@ import {
   Resolution,
   Anime,
   AnimeDetail,
+  RawAnime,
   normalizeAnimeList,
   normalizeAnimeDetail,
   MAX_ITEMS,
@@ -75,7 +76,21 @@ export async function searchAnime(query: string, limit: number = MAX_ITEMS.SEARC
       `/anime/search?query=${encodeURIComponent(query)}`,
       { revalidate: 300 }
     );
-    const normalized = normalizeAnimeList(response || [], false);
+    
+    // Search API returns: {data: [{jumlah, result: [...], pagination}]}
+    // Extract result array from wrapped response
+    let rawList: RawAnime[] = [];
+    if (response && Array.isArray(response)) {
+      rawList = response;
+    } else if (response && typeof response === 'object') {
+      // Handle wrapped response: {data: [{result: [...]}]}
+      const data = (response as { data?: { result?: RawAnime[] }[] }).data;
+      if (data && data[0] && Array.isArray(data[0].result)) {
+        rawList = data[0].result;
+      }
+    }
+    
+    const normalized = normalizeAnimeList(rawList, false);
     // Sort: anime series first, then movies
     const sorted = normalized.sort((a, b) => {
       if (a.contentType === 'anime' && b.contentType === 'movie') return -1;

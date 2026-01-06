@@ -13,9 +13,14 @@ async function HomeContent() {
     getMovies(MAX_ITEMS.MOVIES_HOME),
   ]);
 
-  // Get hero anime - prioritize anime series
+  // Get hero anime list (top 5)
   const animeWithEpisodes = latestAnime.filter(a => a.contentType === 'anime');
-  const heroAnime = animeWithEpisodes[0] || latestAnime[0] || movies[0];
+  const heroAnimeList = animeWithEpisodes.slice(0, MAX_ITEMS.HERO_CAROUSEL);
+  if (heroAnimeList.length < MAX_ITEMS.HERO_CAROUSEL) {
+    // Fill with movies if barely any anime
+    const remaining = MAX_ITEMS.HERO_CAROUSEL - heroAnimeList.length;
+    heroAnimeList.push(...movies.slice(0, remaining));
+  }
 
   // Create different categories with proper limits
   const animeTerbaru = latestAnime.slice(0, MAX_ITEMS.ANIME_TERBARU);
@@ -25,27 +30,34 @@ async function HomeContent() {
 
   return (
     <>
-      {/* Hero Banner */}
-      {heroAnime ? (
-        <HeroBanner anime={heroAnime} />
+      {/* Hero Banner Carousel */}
+      {heroAnimeList.length > 0 ? (
+        <HeroBanner animeList={heroAnimeList} />
       ) : (
         <HeroSkeleton />
       )}
 
       {/* Content Rows */}
-      <div className="-mt-12 relative z-10 space-y-1 pb-8">
-        {/* Anime Terbaru */}
+      <div className="-mt-24 md:-mt-32 relative z-10 space-y-4 pb-12">
+        {/* Rekomendasi (Moved to Top) */}
         <RowCarousel 
-          title="Anime Terbaru" 
-          animeList={animeTerbaru}
+          title="Rekomendasi Untuk Kamu" 
+          animeList={recommendations}
           variant="anime"
-          seeAllLink="/anime"
         />
 
         {/* Trending */}
         <RowCarousel 
           title="Trending Anime" 
           animeList={trending}
+          variant="anime"
+          seeAllLink="/anime"
+        />
+
+        {/* Anime Terbaru */}
+        <RowCarousel 
+          title="Anime Terbaru" 
+          animeList={animeTerbaru}
           variant="anime"
           seeAllLink="/anime"
         />
@@ -59,13 +71,6 @@ async function HomeContent() {
             seeAllLink="/movies"
           />
         )}
-
-        {/* Rekomendasi */}
-        <RowCarousel 
-          title="Rekomendasi Untuk Kamu" 
-          animeList={recommendations}
-          variant="anime"
-        />
       </div>
     </>
   );

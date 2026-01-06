@@ -39,13 +39,15 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="id" suppressHydrationWarning>
-      <body className={`${inter.variable} font-sans antialiased min-h-screen flex flex-col`}>
+      <body className={`${inter.variable} font-sans antialiased min-h-screen bg-background text-foreground`}>
         <ThemeProvider>
-          <Navbar />
-          <main className="flex-1">
-            {children}
-          </main>
-          <Footer />
+          <div className="flex flex-col min-h-screen w-full relative overflow-x-hidden">
+            <Navbar />
+            <main className="flex-1 w-full relative z-0">
+              {children}
+            </main>
+            <Footer />
+          </div>
         </ThemeProvider>
       </body>
     </html>
