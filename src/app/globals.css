@@ -1,0 +1,247 @@
+@import "tailwindcss";
+@import "tw-animate-css";
+
+@custom-variant dark (&:is(.dark *));
+
+/* Nusantara Theme - Betaflix */
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --font-sans: var(--font-inter);
+  --font-mono: var(--font-geist-mono);
+
+  /* Nusantara Colors */
+  --color-nusantara-red: var(--nusantara-red);
+  --color-nusantara-gold: var(--nusantara-gold);
+  --color-nusantara-dark: var(--nusantara-dark);
+  --color-nusantara-cream: var(--nusantara-cream);
+
+  /* shadcn theme mapping */
+  --color-sidebar-ring: var(--sidebar-ring);
+  --color-sidebar-border: var(--sidebar-border);
+  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
+  --color-sidebar-accent: var(--sidebar-accent);
+  --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
+  --color-sidebar-primary: var(--sidebar-primary);
+  --color-sidebar-foreground: var(--sidebar-foreground);
+  --color-sidebar: var(--sidebar);
+  --color-chart-5: var(--chart-5);
+  --color-chart-4: var(--chart-4);
+  --color-chart-3: var(--chart-3);
+  --color-chart-2: var(--chart-2);
+  --color-chart-1: var(--chart-1);
+  --color-ring: var(--ring);
+  --color-input: var(--input);
+  --color-border: var(--border);
+  --color-destructive: var(--destructive);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-accent: var(--accent);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-muted: var(--muted);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-secondary: var(--secondary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-primary: var(--primary);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-popover: var(--popover);
+  --color-card-foreground: var(--card-foreground);
+  --color-card: var(--card);
+  --radius-sm: calc(var(--radius) - 4px);
+  --radius-md: calc(var(--radius) - 2px);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) + 4px);
+  --radius-2xl: calc(var(--radius) + 8px);
+  --radius-3xl: calc(var(--radius) + 12px);
+  --radius-4xl: calc(var(--radius) + 16px);
+}
+
+/* Light Mode - Krem Nusantara */
+:root {
+  --radius: 0.625rem;
+
+  /* Nusantara palette */
+  --nusantara-red: #8b2323;
+  --nusantara-gold: #d4a84b;
+  --nusantara-dark: #1a1a1a;
+  --nusantara-cream: #fdf8f3;
+
+  /* Background: warm cream */
+  --background: #fdf8f3;
+  --foreground: #1a1a1a;
+
+  /* Card: slightly darker cream */
+  --card: #faf5ee;
+  --card-foreground: #1a1a1a;
+
+  /* Popover: pure white */
+  --popover: #ffffff;
+  --popover-foreground: #1a1a1a;
+
+  /* Primary: Nusantara red (merah bata) */
+  --primary: #8b2323;
+  --primary-foreground: #ffffff;
+
+  /* Secondary: muted cream */
+  --secondary: #f0e8de;
+  --secondary-foreground: #1a1a1a;
+
+  /* Muted: light gray-cream */
+  --muted: #f5f0e8;
+  --muted-foreground: #6b6b6b;
+
+  /* Accent: gold */
+  --accent: #d4a84b;
+  --accent-foreground: #1a1a1a;
+
+  --destructive: #dc2626;
+  --border: #e8e0d5;
+  --input: #e8e0d5;
+  --ring: #8b2323;
+
+  /* Charts with Nusantara colors */
+  --chart-1: #8b2323;
+  --chart-2: #d4a84b;
+  --chart-3: #5c4033;
+  --chart-4: #c19a6b;
+  --chart-5: #a0522d;
+
+  /* Sidebar */
+  --sidebar: #faf5ee;
+  --sidebar-foreground: #1a1a1a;
+  --sidebar-primary: #8b2323;
+  --sidebar-primary-foreground: #ffffff;
+  --sidebar-accent: #f0e8de;
+  --sidebar-accent-foreground: #1a1a1a;
+  --sidebar-border: #e8e0d5;
+  --sidebar-ring: #8b2323;
+}
+
+/* Dark Mode - Charcoal Nusantara */
+.dark {
+  /* Nusantara palette stays consistent */
+  --nusantara-red: #b83a3a;
+  --nusantara-gold: #e5b85c;
+  --nusantara-dark: #0d0d0d;
+  --nusantara-cream: #f5efe6;
+
+  /* Background: deep charcoal */
+  --background: #0d0d0d;
+  --foreground: #f5efe6;
+
+  /* Card: slightly lighter charcoal */
+  --card: #1a1a1a;
+  --card-foreground: #f5efe6;
+
+  /* Popover: dark */
+  --popover: #1a1a1a;
+  --popover-foreground: #f5efe6;
+
+  /* Primary: brighter Nusantara red for dark mode */
+  --primary: #b83a3a;
+  --primary-foreground: #ffffff;
+
+  /* Secondary: dark gray */
+  --secondary: #2a2a2a;
+  --secondary-foreground: #f5efe6;
+
+  /* Muted: medium gray */
+  --muted: #2a2a2a;
+  --muted-foreground: #a0a0a0;
+
+  /* Accent: bright gold */
+  --accent: #e5b85c;
+  --accent-foreground: #0d0d0d;
+
+  --destructive: #ef4444;
+  --border: rgba(255, 255, 255, 0.1);
+  --input: rgba(255, 255, 255, 0.15);
+  --ring: #b83a3a;
+
+  /* Charts with Nusantara colors (brighter for dark mode) */
+  --chart-1: #b83a3a;
+  --chart-2: #e5b85c;
+  --chart-3: #8b7355;
+  --chart-4: #d4a84b;
+  --chart-5: #c87941;
+
+  /* Sidebar */
+  --sidebar: #1a1a1a;
+  --sidebar-foreground: #f5efe6;
+  --sidebar-primary: #b83a3a;
+  --sidebar-primary-foreground: #ffffff;
+  --sidebar-accent: #2a2a2a;
+  --sidebar-accent-foreground: #f5efe6;
+  --sidebar-border: rgba(255, 255, 255, 0.1);
+  --sidebar-ring: #b83a3a;
+}
+
+@layer base {
+  * {
+    @apply border-border outline-ring/50;
+  }
+
+  body {
+    @apply bg-background text-foreground antialiased;
+    /* Subtle batik pattern overlay */
+    background-image: url("/batik-pattern.svg");
+    background-size: 150px;
+    background-repeat: repeat;
+  }
+
+  /* Custom scrollbar for Netflix-like feel */
+  ::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+  }
+
+  ::-webkit-scrollbar-track {
+    background: transparent;
+  }
+
+  ::-webkit-scrollbar-thumb {
+    background: var(--muted-foreground);
+    border-radius: 4px;
+  }
+
+  ::-webkit-scrollbar-thumb:hover {
+    background: var(--foreground);
+  }
+}
+
+@layer utilities {
+  /* Text gradient for Nusantara styling */
+  .text-gradient-nusantara {
+    @apply bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent;
+  }
+
+  /* Hero overlay gradient */
+  .hero-gradient {
+    background: linear-gradient(to top, var(--background) 0%, transparent 50%),
+      linear-gradient(to right, var(--background) 0%, transparent 50%);
+  }
+
+  /* Card hover effect */
+  .card-hover {
+    @apply transition-all duration-300 ease-out;
+  }
+
+  .card-hover:hover {
+    @apply scale-105 shadow-2xl z-10;
+    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+  }
+
+  /* Hide scrollbar but keep functionality */
+  .hide-scrollbar {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+
+  .hide-scrollbar::-webkit-scrollbar {
+    display: none;
+  }
+
+  /* Nusantara shadow */
+  .shadow-nusantara {
+    box-shadow: 0 4px 20px -2px rgba(139, 35, 35, 0.3);
+  }
+}
