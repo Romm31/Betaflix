@@ -3,24 +3,26 @@
 import Image from 'next/image';
 import Link from 'next/link';
 import { motion } from 'framer-motion';
-import { Play, Plus, Info } from 'lucide-react';
+import { Play, Plus, Info, Tv, Film, Star } from 'lucide-react';
 import { Anime } from '@/lib/types';
 import { getImageUrl, cn } from '@/lib/utils';
 
 interface AnimeCardProps {
   anime: Anime;
   index?: number;
+  variant?: 'default' | 'anime' | 'movie';
 }
 
-export function AnimeCard({ anime, index = 0 }: AnimeCardProps) {
+export function AnimeCard({ anime, index = 0, variant = 'default' }: AnimeCardProps) {
   const imageUrl = getImageUrl(anime.poster);
+  const isMovie = anime.contentType === 'movie' || variant === 'movie';
 
   return (
     <motion.div
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.4, delay: index * 0.05 }}
-      className="group relative flex-shrink-0 w-[140px] md:w-[180px] lg:w-[200px]"
+      className="group relative flex-shrink-0 w-[150px] md:w-[170px] lg:w-[185px]"
     >
       <Link href={`/anime/${anime.urlId}`}>
         <div className="relative aspect-[2/3] rounded-lg overflow-hidden bg-muted card-hover">
@@ -29,7 +31,7 @@ export function AnimeCard({ anime, index = 0 }: AnimeCardProps) {
             alt={anime.title}
             fill
             className="object-cover transition-transform duration-500 group-hover:scale-110"
-            sizes="(max-width: 768px) 140px, (max-width: 1024px) 180px, 200px"
+            sizes="(max-width: 768px) 150px, (max-width: 1024px) 170px, 185px"
           />
           
           {/* Gradient overlay on hover */}
@@ -50,13 +52,6 @@ export function AnimeCard({ anime, index = 0 }: AnimeCardProps) {
                 whileTap={{ scale: 0.95 }}
                 className="w-8 h-8 rounded-full bg-muted/80 backdrop-blur-sm flex items-center justify-center border border-border"
               >
-                <Plus className="w-4 h-4" />
-              </motion.button>
-              <motion.button
-                whileHover={{ scale: 1.1 }}
-                whileTap={{ scale: 0.95 }}
-                className="w-8 h-8 rounded-full bg-muted/80 backdrop-blur-sm flex items-center justify-center border border-border"
-              >
                 <Info className="w-4 h-4" />
               </motion.button>
             </div>
@@ -67,20 +62,23 @@ export function AnimeCard({ anime, index = 0 }: AnimeCardProps) {
             </p>
           </div>
 
-          {/* Episode badge */}
-          {anime.latestEpisode && (
-            <div className="absolute top-2 left-2">
-              <span className="px-2 py-0.5 rounded text-xs font-medium bg-primary text-primary-foreground">
-                Ep {anime.latestEpisode}
-              </span>
-            </div>
-          )}
+          {/* Content type badge - top left */}
+          <div className="absolute top-2 left-2">
+            <span className={cn(
+              "flex items-center gap-1 px-1.5 py-0.5 rounded text-[10px] font-medium",
+              isMovie 
+                ? "bg-accent text-accent-foreground" 
+                : "bg-primary text-primary-foreground"
+            )}>
+              {isMovie ? <Film className="w-2.5 h-2.5" /> : <Tv className="w-2.5 h-2.5" />}
+            </span>
+          </div>
 
-          {/* Type badge */}
-          {anime.type && (
+          {/* Episode count badge - top right (only for anime series) */}
+          {!isMovie && anime.totalEpisodes && anime.totalEpisodes > 1 && (
             <div className="absolute top-2 right-2">
-              <span className="px-2 py-0.5 rounded text-xs font-medium bg-accent/90 text-accent-foreground">
-                {anime.type}
+              <span className="px-1.5 py-0.5 rounded text-[10px] font-medium bg-black/70 text-white">
+                {anime.totalEpisodes} EP
               </span>
             </div>
           )}
@@ -88,13 +86,14 @@ export function AnimeCard({ anime, index = 0 }: AnimeCardProps) {
       </Link>
       
       {/* Title below card */}
-      <div className="mt-2 px-1">
-        <h3 className="text-sm font-medium text-foreground line-clamp-1 group-hover:text-primary transition-colors">
+      <div className="mt-2">
+        <h3 className="text-xs font-medium text-foreground line-clamp-1 group-hover:text-primary transition-colors">
           {anime.title}
         </h3>
         {anime.score && (
-          <p className="text-xs text-muted-foreground mt-0.5">
-            ⭐ {anime.score}
+          <p className="flex items-center gap-1 text-[10px] text-muted-foreground mt-0.5">
+            <Star className="w-2.5 h-2.5 fill-accent text-accent" />
+            {anime.score}
           </p>
         )}
       </div>
@@ -105,6 +104,7 @@ export function AnimeCard({ anime, index = 0 }: AnimeCardProps) {
 // Compact card variant for grids
 export function AnimeCardCompact({ anime, index = 0 }: AnimeCardProps) {
   const imageUrl = getImageUrl(anime.poster);
+  const isMovie = anime.contentType === 'movie';
 
   return (
     <motion.div
@@ -133,10 +133,23 @@ export function AnimeCardCompact({ anime, index = 0 }: AnimeCardProps) {
             </div>
           </div>
 
-          {anime.type && (
+          {/* Content type badge */}
+          <div className="absolute top-2 left-2">
+            <span className={cn(
+              "flex items-center gap-1 px-1.5 py-0.5 rounded text-[10px] font-medium",
+              isMovie 
+                ? "bg-accent text-accent-foreground" 
+                : "bg-primary text-primary-foreground"
+            )}>
+              {isMovie ? <Film className="w-2.5 h-2.5" /> : <Tv className="w-2.5 h-2.5" />}
+            </span>
+          </div>
+
+          {/* Episode count - for series only */}
+          {!isMovie && anime.totalEpisodes && anime.totalEpisodes > 1 && (
             <div className="absolute top-2 right-2">
-              <span className="px-1.5 py-0.5 rounded text-[10px] font-medium bg-accent/90 text-accent-foreground">
-                {anime.type}
+              <span className="px-1.5 py-0.5 rounded text-[10px] font-medium bg-black/70 text-white">
+                {anime.totalEpisodes} EP
               </span>
             </div>
           )}
@@ -145,6 +158,12 @@ export function AnimeCardCompact({ anime, index = 0 }: AnimeCardProps) {
         <h3 className="mt-2 text-sm font-medium text-foreground line-clamp-2 group-hover:text-primary transition-colors">
           {anime.title}
         </h3>
+        {anime.score && (
+          <p className="flex items-center gap-1 text-xs text-muted-foreground mt-0.5">
+            <Star className="w-3 h-3 fill-accent text-accent" />
+            {anime.score}
+          </p>
+        )}
       </Link>
     </motion.div>
   );

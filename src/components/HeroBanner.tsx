@@ -3,7 +3,7 @@
 import Image from 'next/image';
 import Link from 'next/link';
 import { motion } from 'framer-motion';
-import { Play, Info, Star } from 'lucide-react';
+import { Play, Info, Star, Film, Tv } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Anime } from '@/lib/types';
 import { getImageUrl, truncateText } from '@/lib/utils';
@@ -19,7 +19,7 @@ export function HeroBanner({ anime }: HeroBannerProps) {
     : 'Tonton anime seru ini sekarang di Betaflix!';
 
   return (
-    <section className="relative w-full h-[70vh] md:h-[85vh] overflow-hidden">
+    <section className="relative w-full h-[55vh] md:h-[65vh] overflow-hidden">
       {/* Background Image */}
       <div className="absolute inset-0">
         <Image
@@ -45,17 +45,24 @@ export function HeroBanner({ anime }: HeroBannerProps) {
             className="max-w-2xl"
           >
             {/* Badge */}
-            {anime.type && (
-              <motion.div
-                initial={{ opacity: 0, x: -20 }}
-                animate={{ opacity: 1, x: 0 }}
-                transition={{ delay: 0.2 }}
-                className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-primary/20 border border-primary/50 text-primary text-sm font-medium mb-4"
-              >
-                <Star className="w-4 h-4 fill-primary" />
-                {anime.type}
-              </motion.div>
-            )}
+            <motion.div
+              initial={{ opacity: 0, x: -20 }}
+              animate={{ opacity: 1, x: 0 }}
+              transition={{ delay: 0.2 }}
+              className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-primary/20 border border-primary/50 text-primary text-sm font-medium mb-4"
+            >
+              {anime.contentType === 'movie' ? (
+                <>
+                  <Film className="w-4 h-4" />
+                  Movie
+                </>
+              ) : (
+                <>
+                  <Tv className="w-4 h-4" />
+                  Anime Series
+                </>
+              )}
+            </motion.div>
 
             {/* Title */}
             <motion.h1

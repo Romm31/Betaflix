@@ -9,6 +9,7 @@ import {
   AnimeDetail,
   normalizeAnimeList,
   normalizeAnimeDetail,
+  MAX_ITEMS,
 } from './types';
 
 const BASE_URL = 'https://api.sansekai.my.id/api';
@@ -41,21 +42,32 @@ async function fetchAPI<T>(
 }
 
 // Get latest anime with pagination
-export async function getLatestAnime(page: number = 1): Promise<Anime[]> {
+export async function getLatestAnime(page: number = 1, limit?: number): Promise<Anime[]> {
   try {
     const response = await fetchAPI<LatestAnimeResponse>(
       `/anime/latest?page=${page}`,
       { revalidate: 60 }
     );
-    return normalizeAnimeList(response || []);
+    const normalized = normalizeAnimeList(response || [], false);
+    return limit ? normalized.slice(0, limit) : normalized;
   } catch (error) {
     console.error('Failed to fetch latest anime:', error);
     return [];
   }
 }
 
+// Get anime series only (excludes movies)
+export async function getAnimeSeriesOnly(page: number = 1, limit: number = MAX_ITEMS.ANIME_PER_PAGE): Promise<Anime[]> {
+  const anime = await getLatestAnime(page);
+  // Filter to only include items with episodes > 1
+  const series = anime.filter(item => 
+    item.totalEpisodes && item.totalEpisodes > 1
+  );
+  return series.slice(0, limit);
+}
+
 // Search anime by query
-export async function searchAnime(query: string): Promise<Anime[]> {
+export async function searchAnime(query: string, limit: number = MAX_ITEMS.SEARCH_RESULTS): Promise<Anime[]> {
   if (!query.trim()) return [];
   
   try {
@@ -63,7 +75,14 @@ export async function searchAnime(query: string): Promise<Anime[]> {
       `/anime/search?query=${encodeURIComponent(query)}`,
       { revalidate: 300 }
     );
-    return normalizeAnimeList(response || []);
+    const normalized = normalizeAnimeList(response || [], false);
+    // Sort: anime series first, then movies
+    const sorted = normalized.sort((a, b) => {
+      if (a.contentType === 'anime' && b.contentType === 'movie') return -1;
+      if (a.contentType === 'movie' && b.contentType === 'anime') return 1;
+      return 0;
+    });
+    return sorted.slice(0, limit);
   } catch (error) {
     console.error('Failed to search anime:', error);
     return [];
@@ -78,7 +97,6 @@ export async function getAnimeDetail(urlId: string): Promise<AnimeDetail | null>
       { revalidate: 30 }
     );
     
-    // API returns { data: [...] } where data is an array
     if (response.data && response.data.length > 0) {
       return normalizeAnimeDetail(response.data[0]);
     }
@@ -91,13 +109,15 @@ export async function getAnimeDetail(urlId: string): Promise<AnimeDetail | null>
 }
 
 // Get all anime movies
-export async function getMovies(): Promise<Anime[]> {
+export async function getMovies(limit?: number): Promise<Anime[]> {
   try {
     const response = await fetchAPI<MovieResponse>(
       '/anime/movie',
       { revalidate: 60 }
     );
-    return normalizeAnimeList(response || []);
+    // Pass true to mark these as from movie endpoint
+    const normalized = normalizeAnimeList(response || [], true);
+    return limit ? normalized.slice(0, limit) : normalized;
   } catch (error) {
     console.error('Failed to fetch movies:', error);
     return [];
@@ -115,20 +135,17 @@ export async function getVideoUrl(
       { revalidate: false }
     );
     
-    // Check for error response
     if (response.error) {
       console.error('Video API error:', response.error);
       return null;
     }
     
-    // API returns { data: [{ stream: [{ reso, link }] }] }
     const videoData = response.data?.[0];
     if (!videoData?.stream || videoData.stream.length === 0) {
       console.error('No video streams available');
       return null;
     }
     
-    // Find stream matching requested resolution, or fall back to first available
     const stream = videoData.stream.find(s => s.reso === resolution) || videoData.stream[0];
     return stream?.link || null;
   } catch (error) {
@@ -147,12 +164,13 @@ export function shuffleArray<T>(array: T[]): T[] {
   return shuffled;
 }
 
-// Get pseudo-trending (first items from latest)
-export function getTrending(animeList: Anime[], count: number = 10): Anime[] {
+// Get trending anime (first items from latest)
+export function getTrending(animeList: Anime[], count: number = MAX_ITEMS.TRENDING): Anime[] {
   return animeList.slice(0, count);
 }
 
-// Get recommendations (shuffled subset)
-export function getRecommendations(animeList: Anime[], count: number = 10): Anime[] {
-  return shuffleArray(animeList).slice(0, count);
+// Get recommendations (shuffled subset of anime series)
+export function getRecommendations(animeList: Anime[], count: number = MAX_ITEMS.REKOMENDASI): Anime[] {
+  const seriesOnly = animeList.filter(a => a.contentType === 'anime');
+  return shuffleArray(seriesOnly).slice(0, count);
 }

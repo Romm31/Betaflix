@@ -10,19 +10,20 @@ import {
   Sun, 
   Moon, 
   Menu, 
-  X,
   Film,
   Home,
-  Sparkles
+  Sparkles,
+  Tv
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
 import { cn } from '@/lib/utils';
 
 const navLinks = [
-  { href: '/', label: 'Beranda', icon: Home },
+  { href: '/', label: 'Home', icon: Home },
+  { href: '/anime', label: 'Anime', icon: Tv },
   { href: '/movies', label: 'Movie', icon: Film },
-  { href: '/search', label: 'Cari', icon: Search },
+  { href: '/search', label: 'Search', icon: Search },
 ];
 
 export function Navbar() {

@@ -3,12 +3,13 @@ import { notFound } from 'next/navigation';
 import Image from 'next/image';
 import Link from 'next/link';
 import { Metadata } from 'next';
-import { Play, Star, Calendar, Clock, Film, ChevronRight } from 'lucide-react';
+import { Play, Star, Calendar, Clock, Film } from 'lucide-react';
 import { getAnimeDetail } from '@/lib/api';
 import { getImageUrl, truncateText } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { DetailSkeleton } from '@/components/Skeletons';
+import { EpisodeAccordion } from '@/components/EpisodeAccordion';
 
 interface PageProps {
   params: Promise<{ urlId: string }>;
@@ -165,27 +166,7 @@ async function AnimeDetailContent({ urlId }: { urlId: string }) {
               Daftar Episode ({anime.chapter.length})
             </h2>
 
-            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-3">
-              {anime.chapter.map((chapter, index) => (
-                <Link
-                  key={chapter.chapterUrlId}
-                  href={`/watch/${chapter.chapterUrlId}`}
-                  className="group"
-                >
-                  <div className="p-3 rounded-lg bg-card border border-border hover:border-primary hover:bg-primary/5 transition-all flex items-center justify-between gap-2">
-                    <div className="flex-1 min-w-0">
-                      <p className="font-medium text-sm truncate group-hover:text-primary transition-colors">
-                        {chapter.title || `Episode ${index + 1}`}
-                      </p>
-                      {chapter.date && (
-                        <p className="text-xs text-muted-foreground">{chapter.date}</p>
-                      )}
-                    </div>
-                    <ChevronRight className="w-4 h-4 text-muted-foreground group-hover:text-primary flex-shrink-0" />
-                  </div>
-                </Link>
-              ))}
-            </div>
+            <EpisodeAccordion chapters={anime.chapter} />
           </div>
         )}
       </div>
