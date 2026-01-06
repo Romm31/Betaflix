@@ -40,7 +40,7 @@ async function AnimeDetailContent({ urlId }: { urlId: string }) {
     notFound();
   }
 
-  const imageUrl = getImageUrl(anime.poster || anime.thumbnail);
+  const imageUrl = getImageUrl(anime.poster);
   const firstChapter = anime.chapter?.[0];
 
   return (

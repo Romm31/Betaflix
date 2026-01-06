@@ -13,7 +13,7 @@ interface HeroBannerProps {
 }
 
 export function HeroBanner({ anime }: HeroBannerProps) {
-  const imageUrl = getImageUrl(anime.poster || anime.thumbnail);
+  const imageUrl = getImageUrl(anime.poster);
   const description = anime.synopsis 
     ? truncateText(anime.synopsis, 200) 
     : 'Tonton anime seru ini sekarang di Betaflix!';

@@ -1,7 +1,7 @@
 // API Response Types for Betaflix
 // Based on actual API response from https://api.sansekai.my.id/api
 
-// Raw API anime item (as returned by the API)
+// Raw API anime item (as returned by the API for lists)
 export interface RawAnime {
   id: string;
   url: string;
@@ -18,6 +18,30 @@ export interface RawAnime {
   total_episode?: number;
 }
 
+// Raw API detail item (as returned by detail endpoint)
+export interface RawAnimeDetail {
+  id: number;
+  series_id: string;
+  cover: string;
+  judul: string;
+  type?: string;
+  status?: string;
+  rating?: string;
+  published?: string;
+  author?: string; // studio
+  genre?: string[];
+  sinopsis?: string;
+  chapter?: RawChapter[];
+}
+
+// Raw chapter from detail API
+export interface RawChapter {
+  id: number;
+  ch: string; // episode number or "Movie"
+  url: string; // chapterUrlId
+  date?: string;
+}
+
 // Normalized anime item (used in components)
 export interface Anime {
   id: string;
@@ -25,6 +49,7 @@ export interface Anime {
   title: string;
   poster: string;
   latestChapter?: string;
+  latestEpisode?: string;
   lastUpdate?: string;
   genres?: string[];
   synopsis?: string;
@@ -33,8 +58,11 @@ export interface Anime {
   status?: string;
   releaseDate?: string;
   totalEpisodes?: number;
+  type?: string;
+  episodes?: number;
 }
 
+// Normalized anime detail (used in detail page)
 export interface AnimeDetail {
   id: string;
   urlId: string;
@@ -53,6 +81,7 @@ export interface AnimeDetail {
   chapter?: Chapter[];
 }
 
+// Normalized chapter
 export interface Chapter {
   title: string;
   chapterUrlId: string;
@@ -66,25 +95,33 @@ export interface VideoSource {
   type?: string;
 }
 
-// The API returns arrays directly, not wrapped in {status, data}
+// API response types
 export type LatestAnimeResponse = RawAnime[];
 export type MovieResponse = RawAnime[];
 export type SearchResponse = RawAnime[];
 
-// For detail endpoint - need to verify structure
+// Detail endpoint returns { data: RawAnimeDetail[] }
 export interface DetailResponse {
-  status?: boolean;
-  data?: AnimeDetail;
-  // Or it might be the detail directly
-  [key: string]: unknown;
+  data: RawAnimeDetail[];
+}
+
+// Video API response - structure: { data: [{ stream: [{ reso, link }] }] }
+export interface VideoStream {
+  reso: string;
+  link: string;
+  provide?: number;
+  id?: number;
+}
+
+export interface VideoData {
+  episode_id?: number;
+  reso?: string[];
+  stream?: VideoStream[];
 }
 
 export interface VideoResponse {
-  status: boolean;
-  data: {
-    url?: string;
-    sources?: VideoSource[];
-  };
+  data: VideoData[];
+  error?: string;
 }
 
 export type Resolution = '360p' | '480p' | '720p' | '1080p';
@@ -110,4 +147,32 @@ export function normalizeAnime(raw: RawAnime): Anime {
 
 export function normalizeAnimeList(rawList: RawAnime[]): Anime[] {
   return rawList.map(normalizeAnime);
+}
+
+// Normalize raw chapter to our Chapter type
+export function normalizeChapter(raw: RawChapter): Chapter {
+  return {
+    title: raw.ch === 'Movie' ? 'Movie' : `Episode ${raw.ch}`,
+    chapterUrlId: raw.url,
+    date: raw.date,
+    episodeNumber: raw.ch,
+  };
+}
+
+// Normalize raw detail to our AnimeDetail type
+export function normalizeAnimeDetail(raw: RawAnimeDetail): AnimeDetail {
+  return {
+    id: String(raw.id),
+    urlId: raw.series_id,
+    title: raw.judul,
+    poster: raw.cover,
+    status: raw.status,
+    type: raw.type,
+    score: raw.rating,
+    synopsis: raw.sinopsis,
+    genres: raw.genre,
+    releaseDate: raw.published,
+    studio: raw.author, // API returns "author" but it's actually studio
+    chapter: raw.chapter?.map(normalizeChapter),
+  };
 }

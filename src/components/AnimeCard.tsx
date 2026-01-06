@@ -13,7 +13,7 @@ interface AnimeCardProps {
 }
 
 export function AnimeCard({ anime, index = 0 }: AnimeCardProps) {
-  const imageUrl = getImageUrl(anime.poster || anime.thumbnail);
+  const imageUrl = getImageUrl(anime.poster);
 
   return (
     <motion.div
@@ -104,7 +104,7 @@ export function AnimeCard({ anime, index = 0 }: AnimeCardProps) {
 
 // Compact card variant for grids
 export function AnimeCardCompact({ anime, index = 0 }: AnimeCardProps) {
-  const imageUrl = getImageUrl(anime.poster || anime.thumbnail);
+  const imageUrl = getImageUrl(anime.poster);
 
   return (
     <motion.div

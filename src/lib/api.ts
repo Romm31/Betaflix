@@ -8,6 +8,7 @@ import {
   Anime,
   AnimeDetail,
   normalizeAnimeList,
+  normalizeAnimeDetail,
 } from './types';
 
 const BASE_URL = 'https://api.sansekai.my.id/api';
@@ -46,7 +47,6 @@ export async function getLatestAnime(page: number = 1): Promise<Anime[]> {
       `/anime/latest?page=${page}`,
       { revalidate: 60 }
     );
-    // Response is a direct array
     return normalizeAnimeList(response || []);
   } catch (error) {
     console.error('Failed to fetch latest anime:', error);
@@ -77,13 +77,15 @@ export async function getAnimeDetail(urlId: string): Promise<AnimeDetail | null>
       `/anime/detail?urlId=${encodeURIComponent(urlId)}`,
       { revalidate: 30 }
     );
-    // Handle both wrapped and direct response
-    if (response.data) {
-      return response.data;
+    
+    // API returns { data: [...] } where data is an array
+    if (response.data && response.data.length > 0) {
+      return normalizeAnimeDetail(response.data[0]);
     }
-    // If response is the detail directly
-    return response as unknown as AnimeDetail;
-  } catch {
+    
+    return null;
+  } catch (error) {
+    console.error('Failed to fetch anime detail:', error);
     return null;
   }
 }
@@ -113,18 +115,24 @@ export async function getVideoUrl(
       { revalidate: false }
     );
     
-    // Handle both direct URL and sources array
-    if (response.data?.url) {
-      return response.data.url;
+    // Check for error response
+    if (response.error) {
+      console.error('Video API error:', response.error);
+      return null;
     }
     
-    if (response.data?.sources && response.data.sources.length > 0) {
-      const source = response.data.sources.find(s => s.resolution === resolution);
-      return source?.url || response.data.sources[0].url;
+    // API returns { data: [{ stream: [{ reso, link }] }] }
+    const videoData = response.data?.[0];
+    if (!videoData?.stream || videoData.stream.length === 0) {
+      console.error('No video streams available');
+      return null;
     }
     
-    return null;
-  } catch {
+    // Find stream matching requested resolution, or fall back to first available
+    const stream = videoData.stream.find(s => s.reso === resolution) || videoData.stream[0];
+    return stream?.link || null;
+  } catch (error) {
+    console.error('Failed to get video URL:', error);
     return null;
   }
 }
