@@ -123,11 +123,11 @@ export async function getAnimeDetail(urlId: string): Promise<AnimeDetail | null>
   }
 }
 
-// Get all anime movies
-export async function getMovies(limit?: number): Promise<Anime[]> {
+// Get all anime movies with pagination
+export async function getMovies(page: number = 1, limit?: number): Promise<Anime[]> {
   try {
     const response = await fetchAPI<MovieResponse>(
-      '/anime/movie',
+      `/anime/movie?page=${page}`,
       { revalidate: 60 }
     );
     // Pass true to mark these as from movie endpoint

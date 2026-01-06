@@ -71,16 +71,20 @@ export function HeroBanner({ animeList }: HeroBannerProps) {
               className="object-cover object-center"
               sizes="100vw"
             />
-            {/* Gradient Overlays - Adaptive for light/dark modes */}
-            {/* Dark mode: Standard gradient */}
-            <div className="absolute inset-0 bg-gradient-to-t from-background via-background/60 to-transparent dark:from-background dark:via-background/80" />
+            {/* Gradient Overlays - Layered for natural blend */}
             
-            {/* Light mode: Extra gradient to ensure white text readability or dark text */}
-            <div className="absolute inset-0 bg-gradient-to-r from-black/80 via-black/40 to-transparent dark:from-background dark:via-transparent" />
+            {/* 1. Global subtle tint for contrast */}
+            <div className="absolute inset-0 bg-black/10" />
+
+            {/* 2. Side Scrim for Text Readability (Always dark to support white text) */}
+            <div className="absolute inset-0 bg-gradient-to-r from-black/60 via-black/20 to-transparent" />
+
+            {/* 3. Bottom Fade to Page Background (Highest z-index to blend seamlessy) */}
+            <div className="absolute inset-0 bg-gradient-to-t from-background via-background/20 to-transparent" />
           </div>
 
           {/* Content - Positioned with safe zones */}
-          <div className="absolute inset-0 flex items-end pb-20 md:pb-32 pt-32">
+          <div className="absolute inset-0 flex items-end pb-28 md:pb-32 pt-32">
             <div className="container mx-auto px-4">
               <div className="max-w-3xl">
                 {/* Badge */}
@@ -179,14 +183,14 @@ export function HeroBanner({ animeList }: HeroBannerProps) {
 
 
 
-      {/* Slide Indicators */}
-      <div className="absolute bottom-6 left-1/2 -translate-x-1/2 flex gap-2 z-20">
+      {/* Slide Indicators - Hidden on mobile to prevent collision */}
+      <div className="absolute hidden md:flex md:left-12 md:bottom-40 gap-2 z-20">
         {animeList.map((_, idx) => (
           <button
             key={idx}
             onClick={() => setCurrentIndex(idx)}
-            className={`w-2 h-2 rounded-full transition-all duration-300 ${
-              idx === currentIndex ? 'w-6 bg-primary' : 'bg-white/30 hover:bg-white/50'
+            className={`h-1.5 rounded-full transition-all duration-300 ${
+              idx === currentIndex ? 'w-8 bg-primary' : 'w-1.5 bg-white/50 hover:bg-primary/50'
             }`}
             aria-label={`Go to slide ${idx + 1}`}
           />

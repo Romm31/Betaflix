@@ -55,7 +55,20 @@ export function VideoPlayer({
   const [showControls, setShowControls] = useState(true);
   const [progress, setProgress] = useState(0);
   const [currentTime, setCurrentTime] = useState(0);
+
   const [duration, setDuration] = useState(0);
+  const [volume, setVolume] = useState(1);
+
+  // Handle volume change
+  const handleVolumeChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const newVolume = parseFloat(e.target.value);
+    setVolume(newVolume);
+    if (videoRef.current) {
+      videoRef.current.volume = newVolume;
+      videoRef.current.muted = newVolume === 0;
+    }
+    setIsMuted(newVolume === 0);
+  };
 
   // Fetch video URL
   useEffect(() => {
@@ -226,15 +239,19 @@ export function VideoPlayer({
   return (
     <div
       ref={containerRef}
-      className="relative aspect-video bg-black group"
+      className="relative aspect-video bg-black group overflow-hidden"
       onMouseLeave={() => isPlaying && setShowControls(false)}
+      onClick={() => setShowControls(true)} // Ensure click shows controls on mobile
     >
       {/* Video Element */}
       <video
         ref={videoRef}
         src={videoUrl}
         className="w-full h-full"
-        onClick={togglePlay}
+        onClick={(e) => {
+          e.stopPropagation();
+          togglePlay();
+        }}
         playsInline
       />
 
@@ -242,120 +259,103 @@ export function VideoPlayer({
       <motion.div
         initial={{ opacity: 0 }}
         animate={{ opacity: showControls ? 1 : 0 }}
-        className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-black/30 flex flex-col justify-between"
+        className="absolute inset-0 bg-gradient-to-t from-black/90 via-transparent to-black/60 flex flex-col justify-between"
       >
         {/* Top bar */}
-        <div className="p-4">
+        <div className="p-4 flex justify-between items-start">
           {title && (
-            <h3 className="text-white font-medium text-lg drop-shadow-lg">
+            <h3 className="text-white font-medium text-lg drop-shadow-md line-clamp-1">
               {title}
             </h3>
           )}
         </div>
 
-        {/* Center play button */}
-        <div className="flex items-center justify-center">
-          <motion.button
-            whileHover={{ scale: 1.1 }}
-            whileTap={{ scale: 0.9 }}
-            onClick={togglePlay}
-            className="w-16 h-16 rounded-full bg-primary/90 flex items-center justify-center text-white"
-          >
-            {isPlaying ? (
-              <Pause className="w-8 h-8" />
-            ) : (
-              <Play className="w-8 h-8 ml-1" />
-            )}
-          </motion.button>
+        {/* Center play button (Mobile friendly: Only show if paused or hovering?) 
+            Actually, keep it as main interaction point.
+        */}
+        <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+          {!isPlaying && (
+            <motion.div
+              initial={{ scale: 0.5, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              className="w-16 h-16 rounded-full bg-black/50 backdrop-blur-sm flex items-center justify-center text-white border border-white/20"
+            >
+              <Play className="w-8 h-8 ml-1 fill-current" />
+            </motion.div>
+          )}
         </div>
 
         {/* Bottom controls */}
-        <div className="p-4 space-y-2">
+        <div className="p-4 space-y-3 bg-gradient-to-t from-black/80 to-transparent">
           {/* Progress bar */}
           <div
-            className="h-1 bg-white/30 rounded-full cursor-pointer group/progress"
+            className="h-1.5 bg-white/20 rounded-full cursor-pointer group/progress relative"
             onClick={handleSeek}
           >
             <div
               className="h-full bg-primary rounded-full relative"
               style={{ width: `${progress}%` }}
             >
-              <div className="absolute right-0 top-1/2 -translate-y-1/2 w-3 h-3 bg-primary rounded-full opacity-0 group-hover/progress:opacity-100 transition-opacity" />
+              <div className="absolute right-0 top-1/2 -translate-y-1/2 w-3.5 h-3.5 bg-primary rounded-full shadow-lg scale-0 group-hover/progress:scale-100 transition-transform" />
             </div>
           </div>
 
           {/* Controls row */}
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-2">
+          <div className="flex items-center justify-between gap-2">
+            <div className="flex items-center gap-2 md:gap-4">
               {/* Play/Pause */}
-              <Button
-                variant="ghost"
-                size="icon"
+              <button
                 onClick={togglePlay}
-                className="text-white hover:bg-white/20"
+                className="text-white hover:text-primary transition-colors focus:outline-none"
               >
-                {isPlaying ? <Pause className="w-5 h-5" /> : <Play className="w-5 h-5" />}
-              </Button>
+                {isPlaying ? <Pause className="w-6 h-6 fill-current" /> : <Play className="w-6 h-6 fill-current" />}
+              </button>
 
-              {/* Previous */}
-              {hasPrevious && onPrevious && (
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  onClick={onPrevious}
-                  className="text-white hover:bg-white/20"
+              {/* Volume Control */}
+              <div className="flex items-center group/volume">
+                <button
+                  onClick={toggleMute}
+                  className="text-white hover:text-primary transition-colors focus:outline-none mr-2"
                 >
-                  <SkipBack className="w-5 h-5" />
-                </Button>
-              )}
-
-              {/* Next */}
-              {hasNext && onNext && (
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  onClick={onNext}
-                  className="text-white hover:bg-white/20"
-                >
-                  <SkipForward className="w-5 h-5" />
-                </Button>
-              )}
-
-              {/* Mute */}
-              <Button
-                variant="ghost"
-                size="icon"
-                onClick={toggleMute}
-                className="text-white hover:bg-white/20"
-              >
-                {isMuted ? <VolumeX className="w-5 h-5" /> : <Volume2 className="w-5 h-5" />}
-              </Button>
+                  {isMuted || volume === 0 ? <VolumeX className="w-6 h-6" /> : <Volume2 className="w-6 h-6" />}
+                </button>
+                <div className="w-0 overflow-hidden group-hover/volume:w-20 md:w-24 transition-all duration-300 flex items-center">
+                  <input
+                    type="range"
+                    min="0"
+                    max="1"
+                    step="0.05"
+                    value={isMuted ? 0 : volume}
+                    onChange={handleVolumeChange}
+                    className="w-20 h-1 accent-primary cursor-pointer"
+                  />
+                </div>
+              </div>
 
               {/* Time */}
-              <span className="text-white text-sm">
+              <span className="text-white/90 text-xs md:text-sm font-medium tabular-nums">
                 {formatTime(currentTime)} / {formatTime(duration)}
               </span>
             </div>
 
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-3">
               {/* Resolution selector */}
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    className="text-white hover:bg-white/20 gap-1"
-                  >
+                  <button className="text-white/90 hover:text-white text-xs md:text-sm font-medium flex items-center gap-1 px-2 py-1 rounded hover:bg-white/10 transition-colors">
                     <Settings className="w-4 h-4" />
-                    {resolution}
-                  </Button>
+                    <span className="hidden md:inline">{resolution}</span>
+                  </button>
                 </DropdownMenuTrigger>
-                <DropdownMenuContent align="end">
+                <DropdownMenuContent align="end" className="bg-black/90 border-white/10 text-white">
                   {RESOLUTIONS.map((res) => (
                     <DropdownMenuItem
                       key={res}
                       onClick={() => handleResolutionChange(res)}
-                      className={cn(resolution === res && 'bg-primary text-primary-foreground')}
+                      className={cn(
+                        "focus:bg-white/20 focus:text-white cursor-pointer",
+                        resolution === res && 'text-primary'
+                      )}
                     >
                       {res}
                     </DropdownMenuItem>
@@ -364,14 +364,12 @@ export function VideoPlayer({
               </DropdownMenu>
 
               {/* Fullscreen */}
-              <Button
-                variant="ghost"
-                size="icon"
+              <button
                 onClick={toggleFullscreen}
-                className="text-white hover:bg-white/20"
+                className="text-white hover:text-primary transition-colors focus:outline-none"
               >
                 <Maximize className="w-5 h-5" />
-              </Button>
+              </button>
             </div>
           </div>
         </div>

@@ -21,77 +21,64 @@ function WatchContent() {
 
   return (
     <div className="min-h-screen bg-black">
-      {/* Header */}
-      <motion.div
-        initial={{ opacity: 0, y: -20 }}
-        animate={{ opacity: 1, y: 0 }}
-        className="fixed top-0 left-0 right-0 z-50 bg-gradient-to-b from-black/80 to-transparent p-4"
-      >
-        <div className="container mx-auto flex items-center justify-between">
-          <div className="flex items-center gap-4">
-            <Button
-              variant="ghost"
-              size="icon"
-              onClick={() => router.back()}
-              className="text-white hover:bg-white/20"
-            >
-              <ArrowLeft className="w-5 h-5" />
-            </Button>
-            <div>
-              <p className="text-white/60 text-xs">Sedang Menonton</p>
-              <h1 className="text-white font-medium text-sm md:text-base line-clamp-1">
-                {episodeTitle}
-              </h1>
+
+
+      {/* Ambient Background */}
+      <div className="fixed inset-0 pointer-events-none overflow-hidden">
+        <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[120vw] h-[80vh] bg-primary/10 blur-[150px] opacity-30 rounded-full" />
+      </div>
+
+      {/* Video Player Section */}
+      <div className="pt-24 pb-12 relative z-10">
+        <div className="container mx-auto px-4 md:px-6">
+          <motion.div
+            initial={{ opacity: 0, scale: 0.98, y: 20 }}
+            animate={{ opacity: 1, scale: 1, y: 0 }}
+            transition={{ type: 'spring', damping: 20, stiffness: 100 }}
+            className="max-w-[1400px] mx-auto"
+          >
+            {/* Player Container with Glow */}
+            <div className="relative group">
+              <div className="absolute -inset-1 bg-gradient-to-r from-primary/20 to-secondary/20 rounded-2xl blur-xl opacity-20 group-hover:opacity-40 transition-opacity duration-500" />
+              <div className="relative rounded-2xl overflow-hidden shadow-2xl border border-white/10 bg-black/50 backdrop-blur-sm">
+                <VideoPlayer
+                  chapterUrlId={chapterUrlId}
+                  title={episodeTitle}
+                />
+              </div>
             </div>
-          </div>
 
-          <Link href="/">
-            <Button variant="ghost" size="icon" className="text-white hover:bg-white/20">
-              <Home className="w-5 h-5" />
-            </Button>
-          </Link>
-        </div>
-      </motion.div>
+            {/* Title & Info */}
+            <div className="mt-8 flex flex-col md:flex-row items-start md:items-center justify-between gap-6">
+              <div className="space-y-2 flex-1">
+                <h1 className="text-2xl md:text-3xl font-bold text-foreground tracking-tight drop-shadow-md">
+                  {episodeTitle}
+                </h1>
+                <p className="text-muted-foreground text-sm max-w-2xl leading-relaxed hidden md:block">
+                  Nikmati pengalaman streaming anime terbaik. Gunakan tombol pengaturan di player untuk menyesuaikan kualitas video sesuai koneksi internet Anda.
+                </p>
+              </div>
 
-      {/* Video Player */}
-      <div className="pt-20 pb-8">
-        <div className="container mx-auto px-4">
-          <motion.div
-            initial={{ opacity: 0, scale: 0.95 }}
-            animate={{ opacity: 1, scale: 1 }}
-            transition={{ delay: 0.2 }}
-            className="max-w-5xl mx-auto rounded-xl overflow-hidden shadow-2xl"
-          >
-            <VideoPlayer
-              chapterUrlId={chapterUrlId}
-              title={episodeTitle}
-            />
-          </motion.div>
-
-          {/* Info below player */}
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.4 }}
-            className="max-w-5xl mx-auto mt-6 p-4 rounded-lg bg-card/50 backdrop-blur-sm border border-border"
-          >
-            <h2 className="text-lg font-semibold text-foreground mb-2">
-              {episodeTitle}
-            </h2>
-            <p className="text-sm text-muted-foreground">
-              Nikmati streaming anime dengan kualitas terbaik. Gunakan tombol pengaturan untuk mengubah resolusi video.
-            </p>
-            <div className="mt-4 flex gap-2">
-              <Button variant="outline" size="sm" onClick={() => router.back()}>
-                <ArrowLeft className="w-4 h-4 mr-2" />
-                Kembali
-              </Button>
-              <Link href="/">
-                <Button variant="outline" size="sm">
-                  <Home className="w-4 h-4 mr-2" />
-                  Beranda
+              {/* Action Buttons */}
+              <div className="flex items-center gap-3">
+                <Button 
+                  variant="outline" 
+                  onClick={() => router.back()}
+                  className="bg-background/20 backdrop-blur-md border-white/10 hover:bg-white/10 hover:text-white transition-all"
+                >
+                  <ArrowLeft className="w-4 h-4 mr-2" />
+                  Kembali
                 </Button>
-              </Link>
+                <Link href="/">
+                  <Button 
+                    variant="default"
+                    className="bg-primary hover:bg-primary/90 text-white shadow-lg shadow-primary/20"
+                  >
+                    <Home className="w-4 h-4 mr-2" />
+                    Beranda
+                  </Button>
+                </Link>
+              </div>
             </div>
           </motion.div>
         </div>

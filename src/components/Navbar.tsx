@@ -58,29 +58,29 @@ export function Navbar() {
       className={cn(
         'fixed top-0 left-0 right-0 z-50 transition-all duration-500',
         isScrolled
-          ? 'bg-background/95 backdrop-blur-md border-b border-border shadow-lg'
-          : 'bg-gradient-to-b from-background/80 to-transparent'
+          ? 'bg-background/95 backdrop-blur-md border-b border-border shadow-lg py-2'
+          : 'bg-gradient-to-b from-background/90 via-background/50 to-transparent py-4'
       )}
     >
       <div className="container mx-auto px-4">
-        <nav className="flex items-center justify-between h-16 md:h-20">
+        <nav className="flex items-center justify-between h-16">
           {/* Logo */}
           <Link href="/" className="flex items-center gap-2 group">
             <motion.div
               whileHover={{ rotate: 360 }}
               transition={{ duration: 0.5 }}
-              className="w-8 h-8 md:w-10 md:h-10 rounded-lg bg-primary flex items-center justify-center"
+              className="w-10 h-10 rounded-xl bg-primary flex items-center justify-center shadow-lg shadow-primary/20"
             >
-              <Sparkles className="w-5 h-5 md:w-6 md:h-6 text-primary-foreground" />
+              <Sparkles className="w-6 h-6 text-primary-foreground" />
             </motion.div>
-            <span className="text-xl md:text-2xl font-bold">
+            <span className="text-2xl font-bold tracking-tight">
               <span className="text-primary">Beta</span>
-              <span className="text-foreground">flix</span>
+              <span className="text-foreground drop-shadow-md">flix</span>
             </span>
           </Link>
 
           {/* Desktop Navigation */}
-          <div className="hidden md:flex items-center gap-8">
+          <div className="hidden md:flex items-center gap-8 bg-background/20 backdrop-blur-sm px-6 py-2 rounded-full border border-white/10 shadow-sm">
             {navLinks.map((link) => {
               const isActive = pathname === link.href;
               return (
@@ -88,8 +88,8 @@ export function Navbar() {
                   key={link.href}
                   href={link.href}
                   className={cn(
-                    'relative flex items-center gap-2 text-sm font-medium transition-colors hover:text-primary',
-                    isActive ? 'text-primary' : 'text-muted-foreground'
+                    'relative flex items-center gap-2 text-sm font-bold transition-all hover:text-primary',
+                    isActive ? 'text-primary' : 'text-foreground/90 hover:text-foreground'
                   )}
                 >
                   <link.icon className="w-4 h-4" />
