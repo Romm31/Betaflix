@@ -1,4 +1,4 @@
-# 🎬 Betaflix
+# Betaflix
 
 **Streaming Anime Rasa Nusantara** — Aplikasi streaming anime dengan tampilan mirip Netflix dan tema Indonesia yang elegan.
 
@@ -7,17 +7,17 @@
 ![Tailwind CSS](https://img.shields.io/badge/Tailwind-3-38bdf8?logo=tailwindcss)
 ![Vercel](https://img.shields.io/badge/Deploy-Vercel-black?logo=vercel)
 
-## ✨ Features
+## Features
 
-- 🎨 **Netflix-like UI** — Layout, hover effects, dan carousel seperti Netflix
-- 🇮🇩 **Tema Nusantara** — Warna merah bata, emas kunyit, pattern batik subtle
-- 🌙 **Dark/Light Mode** — Toggle tema dengan next-themes
-- 📱 **Fully Responsive** — Mobile-first design
-- ⚡ **Fast Loading** — Server-side rendering dengan caching
-- 🔍 **Search Debounce** — Pencarian real-time dengan debounce 400ms
-- 🎥 **Video Player** — Player dengan selector resolusi (360p-1080p)
+- **Netflix-like UI** — Layout, hover effects, dan carousel seperti Netflix
+- **Tema Nusantara** — Warna merah bata, emas kunyit, pattern batik subtle
+- **Dark/Light Mode** — Toggle tema dengan next-themes
+- **Fully Responsive** — Mobile-first design
+- **Fast Loading** — Server-side rendering dengan caching
+- **Search Debounce** — Pencarian real-time dengan debounce 400ms
+- **Video Player** — Player dengan selector resolusi (360p-1080p)
 
-## 🚀 Getting Started
+## Getting Started
 
 ### Prerequisites
 
@@ -50,7 +50,7 @@ npm run build
 npm run start
 ```
 
-## 📦 Tech Stack
+## Tech Stack
 
 - **Framework**: Next.js 14 (App Router)
 - **Language**: TypeScript
@@ -60,7 +60,7 @@ npm run start
 - **Theme**: next-themes
 - **Icons**: Lucide React
 
-## 📁 Project Structure
+## Project Structure
 
 ```
 src/
@@ -92,7 +92,7 @@ src/
     └── utils.ts            # Utility functions
 ```
 
-## 🎨 Theme Colors
+## Theme Colors
 
 | Color      | Light Mode | Dark Mode | Usage            |
 | ---------- | ---------- | --------- | ---------------- |
@@ -100,7 +100,7 @@ src/
 | Accent     | `#D4A84B`  | `#E5B85C` | Emas kunyit      |
 | Background | `#FDF8F3`  | `#0D0D0D` | Krem / Charcoal  |
 
-## 🔧 API Endpoints
+## API Endpoints
 
 Base URL: `https://api.sansekai.my.id`
 
@@ -112,7 +112,7 @@ Base URL: `https://api.sansekai.my.id`
 | `/anime/movie`                               | Daftar movie    |
 | `/anime/getvideo?chapterUrlId=...&reso=480p` | Video streaming |
 
-## 📝 Caching Strategy
+## Caching Strategy
 
 - **Home page**: `revalidate: 60` (1 menit)
 - **Movies**: `revalidate: 60` (1 menit)
@@ -120,7 +120,7 @@ Base URL: `https://api.sansekai.my.id`
 - **Detail**: `revalidate: 30` (30 detik)
 - **Video**: No cache (fresh setiap request)
 
-## ➕ Menambah Kategori Row Baru
+## Menambah Kategori Row Baru
 
 1. Buka `src/app/page.tsx`
 2. Fetch data di `HomeContent`:
@@ -129,14 +129,14 @@ Base URL: `https://api.sansekai.my.id`
    ```
 3. Tambah `RowCarousel`:
    ```tsx
-   <RowCarousel title="🆕 Kategori Baru" animeList={newCategory} />
+   <RowCarousel title="Kategori Baru" animeList={newCategory} />
    ```
 
-## 🚀 Deploy ke Vercel
+## Deploy ke Vercel
 
 1. Push ke GitHub
 2. Import project di [Vercel](https://vercel.com)
-3. Deploy otomatis! ✅
+3. Deploy otomatis!
 
 Tidak perlu environment variables karena API public.
 
@@ -146,4 +146,4 @@ MIT License
 
 ---
 
-**Made with ❤️ in Indonesia**
+**Made with love in Indonesia**
