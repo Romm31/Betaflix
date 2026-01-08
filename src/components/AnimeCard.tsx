@@ -35,31 +35,26 @@ export function AnimeCard({ anime, index = 0, variant = 'default' }: AnimeCardPr
           />
           
           {/* Gradient overlay on hover */}
-          <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+          <div className="absolute inset-0 bg-gradient-to-t from-black via-black/40 to-transparent opacity-0 group-hover:opacity-100 transition-all duration-500 ease-out" />
           
-          {/* Quick actions on hover */}
-          <div className="absolute inset-0 flex flex-col items-center justify-end p-3 opacity-0 group-hover:opacity-100 transition-all duration-300 transform translate-y-2 group-hover:translate-y-0">
-            <div className="flex items-center gap-2 mb-2">
+          {/* Quick actions on hover - Animated entry */}
+          <div className="absolute inset-0 flex flex-col items-center justify-end p-4 opacity-0 group-hover:opacity-100 transition-all duration-300 delay-100">
+            <div className="flex items-center gap-3 mb-3 translate-y-4 group-hover:translate-y-0 transition-transform duration-300">
               <motion.button
-                whileHover={{ scale: 1.1 }}
-                whileTap={{ scale: 0.95 }}
-                className="w-10 h-10 rounded-full bg-primary flex items-center justify-center shadow-lg"
+                whileHover={{ scale: 1.15 }}
+                whileTap={{ scale: 0.9 }}
+                className="w-10 h-10 rounded-full bg-primary flex items-center justify-center shadow-lg shadow-primary/40 border border-white/10"
               >
-                <Play className="w-5 h-5 text-primary-foreground fill-current ml-0.5" />
+                <Play className="w-5 h-5 text-white fill-current ml-0.5" />
               </motion.button>
               <motion.button
-                whileHover={{ scale: 1.1 }}
-                whileTap={{ scale: 0.95 }}
-                className="w-8 h-8 rounded-full bg-muted/80 backdrop-blur-sm flex items-center justify-center border border-border"
+                whileHover={{ scale: 1.15 }}
+                whileTap={{ scale: 0.9 }}
+                className="w-10 h-10 rounded-full bg-white/10 backdrop-blur-md flex items-center justify-center border border-white/20 hover:bg-white/20"
               >
-                <Info className="w-4 h-4" />
+                <Info className="w-5 h-5 text-white" />
               </motion.button>
             </div>
-            
-            {/* Title on hover */}
-            <p className="text-white text-xs font-medium text-center line-clamp-2 px-1">
-              {anime.title}
-            </p>
           </div>
 
           {/* Content type badge - top left */}

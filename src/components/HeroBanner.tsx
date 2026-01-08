@@ -24,6 +24,13 @@ export function HeroBanner({ animeList }: HeroBannerProps) {
     return () => clearInterval(timer);
   }, [animeList.length]);
 
+  // Progress bar animation key
+  const [progressKey, setProgressKey] = useState(0);
+
+  useEffect(() => {
+    setProgressKey(prev => prev + 1);
+  }, [currentIndex]);
+
   const nextSlide = () => {
     setCurrentIndex((prev) => (prev + 1) % animeList.length);
   };
@@ -63,14 +70,22 @@ export function HeroBanner({ animeList }: HeroBannerProps) {
         >
           {/* Background Image */}
           <div className="absolute inset-0">
-            <Image
-              src={imageUrl}
-              alt={currentAnime.title}
-              fill
-              priority
-              className="object-cover object-center"
-              sizes="100vw"
-            />
+            <motion.div
+              key={currentAnime.urlId}
+              initial={{ scale: 1.1 }}
+              animate={{ scale: 1 }}
+              transition={{ duration: 10, ease: "linear" }}
+              className="absolute inset-0"
+            >
+              <Image
+                src={imageUrl}
+                alt={currentAnime.title}
+                fill
+                priority
+                className="object-cover object-center"
+                sizes="100vw"
+              />
+            </motion.div>
             {/* Gradient Overlays - Layered for natural blend */}
             
             {/* 1. Global subtle tint for contrast */}
@@ -186,14 +201,25 @@ export function HeroBanner({ animeList }: HeroBannerProps) {
       {/* Slide Indicators - Hidden on mobile to prevent collision */}
       <div className="absolute hidden md:flex md:left-12 md:bottom-40 gap-2 z-20">
         {animeList.map((_, idx) => (
-          <button
-            key={idx}
-            onClick={() => setCurrentIndex(idx)}
-            className={`h-1.5 rounded-full transition-all duration-300 ${
-              idx === currentIndex ? 'w-8 bg-primary' : 'w-1.5 bg-white/50 hover:bg-primary/50'
-            }`}
-            aria-label={`Go to slide ${idx + 1}`}
-          />
+          <div key={idx} className="relative">
+             <button
+              onClick={() => setCurrentIndex(idx)}
+              className={`h-1.5 rounded-full transition-all duration-300 overflow-hidden ${
+                idx === currentIndex ? 'w-12 bg-white/20' : 'w-1.5 bg-white/50 hover:bg-primary/50'
+              }`}
+              aria-label={`Go to slide ${idx + 1}`}
+            >
+              {idx === currentIndex && (
+                <motion.div 
+                  key={progressKey}
+                  initial={{ width: "0%" }}
+                  animate={{ width: "100%" }}
+                  transition={{ duration: 8, ease: "linear" }}
+                  className="h-full bg-primary"
+                />
+              )}
+            </button>
+          </div>
         ))}
       </div>
     </section>

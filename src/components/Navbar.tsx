@@ -57,10 +57,10 @@ export function Navbar() {
       animate={{ y: 0 }}
       transition={{ type: 'spring', stiffness: 100, damping: 20 }}
       className={cn(
-        'fixed top-0 left-0 right-0 z-50 transition-all duration-500',
+        'fixed top-0 left-0 right-0 z-50 transition-all duration-500 ease-in-out',
         isScrolled
-          ? 'bg-background/95 backdrop-blur-md border-b border-border shadow-lg py-2'
-          : 'bg-gradient-to-b from-background/90 via-background/50 to-transparent py-4'
+          ? 'bg-black/80 backdrop-blur-xl border-b border-white/5 shadow-2xl py-3'
+          : 'bg-gradient-to-b from-black/80 via-black/20 to-transparent py-5'
       )}
     >
       <div className="container mx-auto px-4">
@@ -77,7 +77,7 @@ export function Navbar() {
           </Link>
 
           {/* Desktop Navigation */}
-          <div className="hidden md:flex items-center gap-8 bg-background/20 backdrop-blur-sm px-6 py-2 rounded-full border border-white/10 shadow-sm">
+          <div className="hidden md:flex items-center gap-1 bg-black/20 backdrop-blur-md px-2 py-1.5 rounded-full border border-white/5 shadow-inner">
             {navLinks.map((link) => {
               const isActive = pathname === link.href;
               return (
@@ -85,20 +85,14 @@ export function Navbar() {
                   key={link.href}
                   href={link.href}
                   className={cn(
-                    'relative flex items-center gap-2 text-sm font-bold transition-all hover:text-primary',
-                    isActive ? 'text-primary' : 'text-foreground/90 hover:text-foreground'
+                    'relative flex items-center gap-2 px-4 py-2 rounded-full text-sm font-medium transition-all duration-300',
+                    isActive 
+                      ? 'text-white bg-white/10 shadow-sm' 
+                      : 'text-white/70 hover:text-white hover:bg-white/5'
                   )}
                 >
-                  <link.icon className="w-4 h-4" />
+                  <link.icon className={cn("w-4 h-4", isActive ? "text-primary" : "opacity-70 group-hover:opacity-100")} />
                   {link.label}
-                  {isActive && (
-                    <motion.div
-                      layoutId="navbar-indicator"
-                      className="absolute -bottom-1 left-0 right-0 h-0.5 bg-primary rounded-full"
-                      initial={false}
-                      transition={{ type: 'spring', stiffness: 500, damping: 30 }}
-                    />
-                  )}
                 </Link>
               );
             })}
@@ -149,43 +143,56 @@ export function Navbar() {
                   <span className="sr-only">Menu</span>
                 </Button>
               </SheetTrigger>
-              <SheetContent side="right" className="w-[280px] bg-background/95 backdrop-blur-xl">
-                <div className="flex flex-col gap-6 mt-8">
-                  <div className="flex items-center gap-2">
-                    <div className="w-8 h-8 rounded-lg bg-primary flex items-center justify-center">
-                      <Sparkles className="w-5 h-5 text-primary-foreground" />
+              <SheetContent side="right" className="w-[300px] border-l border-white/10 bg-black/80 backdrop-blur-3xl shadow-2xl p-0">
+                <div className="flex flex-col h-full">
+                  <div className="p-6 border-b border-white/5 space-y-1">
+                    <div className="flex items-center gap-2 mb-2">
+                      <div className="w-8 h-8 rounded-lg bg-primary flex items-center justify-center shadow-lg shadow-primary/20">
+                        <Sparkles className="w-5 h-5 text-white" />
+                      </div>
+                      <span className="text-xl font-bold tracking-tight">
+                        <span className="text-primary">Beta</span>
+                        <span className="text-white">flix</span>
+                      </span>
                     </div>
-                    <span className="text-xl font-bold">
-                      <span className="text-primary">Beta</span>
-                      <span className="text-foreground">flix</span>
-                    </span>
+                    <p className="text-xs text-white/50 font-medium tracking-wide">
+                      PREMIUM ANIME STREAMING
+                    </p>
                   </div>
 
-                  <nav className="flex flex-col gap-2">
-                    {navLinks.map((link) => {
-                      const isActive = pathname === link.href;
-                      return (
-                        <Link
-                          key={link.href}
-                          href={link.href}
-                          onClick={() => setIsMobileMenuOpen(false)}
-                          className={cn(
-                            'flex items-center gap-3 px-4 py-3 rounded-lg transition-all',
-                            isActive
-                              ? 'bg-primary text-primary-foreground'
-                              : 'text-muted-foreground hover:bg-muted hover:text-foreground'
-                          )}
-                        >
-                          <link.icon className="w-5 h-5" />
-                          {link.label}
-                        </Link>
-                      );
-                    })}
-                  </nav>
+                  <div className="flex-1 overflow-y-auto py-6 px-4">
+                    <nav className="flex flex-col gap-2">
+                       {navLinks.map((link, i) => {
+                        const isActive = pathname === link.href;
+                        return (
+                          <Link
+                            key={link.href}
+                            href={link.href}
+                            onClick={() => setIsMobileMenuOpen(false)}
+                          >
+                            <motion.div
+                              initial={{ opacity: 0, x: -20 }}
+                              animate={{ opacity: 1, x: 0 }}
+                              transition={{ delay: i * 0.1 }}
+                              className={cn(
+                                'flex items-center gap-4 px-4 py-3.5 rounded-xl transition-all duration-300',
+                                isActive
+                                  ? 'bg-primary text-white shadow-lg shadow-primary/20 font-semibold'
+                                  : 'text-white/60 hover:bg-white/5 hover:text-white'
+                              )}
+                            >
+                              <link.icon className={cn("w-5 h-5", isActive ? "text-white" : "text-white/60")} />
+                              {link.label}
+                            </motion.div>
+                          </Link>
+                        );
+                      })}
+                    </nav>
+                  </div>
 
-                  <div className="pt-4 border-t border-border">
-                    <p className="text-xs text-muted-foreground px-4">
-                      Streaming Anime Favoritmu dengan Kualitas Terbaik
+                  <div className="p-6 border-t border-white/5 bg-white/5">
+                    <p className="text-xs text-center text-white/40 leading-relaxed">
+                      &copy; {new Date().getFullYear()} Betaflix.<br/>Made with ❤️ for Anime Fans.
                     </p>
                   </div>
                 </div>

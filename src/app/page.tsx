@@ -4,6 +4,7 @@ import { MAX_ITEMS } from '@/lib/types';
 import { HeroBanner } from '@/components/HeroBanner';
 import { RowCarousel } from '@/components/RowCarousel';
 import { HeroSkeleton, RowSkeleton } from '@/components/Skeletons';
+import { BackgroundAmbience } from '@/components/BackgroundAmbience';
 
 export const revalidate = 60;
 
@@ -31,10 +32,8 @@ async function HomeContent() {
   return (
     <div className="relative overflow-hidden">
       {/* Background Ambience */}
-      <div className="absolute inset-0 pointer-events-none z-0">
-        <div className="absolute top-0 right-0 w-[1000px] h-[800px] bg-primary/5 blur-[120px] rounded-full opacity-50" />
-        <div className="absolute top-[800px] left-[-200px] w-[800px] h-[800px] bg-accent/5 blur-[120px] rounded-full opacity-30" />
-      </div>
+      <BackgroundAmbience />
+      
       {/* Hero Banner Carousel */}
       {heroAnimeList.length > 0 ? (
         <HeroBanner animeList={heroAnimeList} />
