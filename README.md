@@ -2,7 +2,7 @@
 
 **Streaming Anime Rasa Nusantara** — Aplikasi streaming anime dengan tampilan mirip Netflix dan tema Indonesia yang elegan.
 
-![Next.js](https://img.shields.io/badge/Next.js-14-black?logo=next.js)
+![Next.js](https://img.shields.io/badge/Next.js-16.1.1-black?logo=next.js)
 ![TypeScript](https://img.shields.io/badge/TypeScript-5-blue?logo=typescript)
 ![Tailwind CSS](https://img.shields.io/badge/Tailwind-3-38bdf8?logo=tailwindcss)
 ![Vercel](https://img.shields.io/badge/Deploy-Vercel-black?logo=vercel)
@@ -15,7 +15,8 @@
 - **Fully Responsive** — Mobile-first design
 - **Fast Loading** — Server-side rendering dengan caching
 - **Search Debounce** — Pencarian real-time dengan debounce 400ms
-- **Video Player** — Player dengan selector resolusi (360p-1080p)
+- **Video Player** — Player dengan selector resolusi (360p-1080p) dan **Fitur Download**
+- **Premium Visuals** — Efek Ken Burns, Glassmorphism, dan Animated Backgrounds yang memukau
 
 ## Getting Started
 
@@ -52,7 +53,7 @@ npm run start
 
 ## Tech Stack
 
-- **Framework**: Next.js 14 (App Router)
+- **Framework**: Next.js 16.1.1 (App Router)
 - **Language**: TypeScript
 - **Styling**: Tailwind CSS
 - **Components**: shadcn/ui
