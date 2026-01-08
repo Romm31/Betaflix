@@ -193,10 +193,16 @@ export function VideoPlayer({
 
   const togglePlay = () => {
     if (videoRef.current) {
-      if (isPlaying) {
+     if (isPlaying) {
         videoRef.current.pause();
       } else {
-        videoRef.current.play();
+        const playPromise = videoRef.current.play();
+        if (playPromise !== undefined) {
+          playPromise.catch((error) => {
+            console.error('Video play error:', error);
+            // Don't set global error here to avoid blocking UI if it's just an autoplay issue
+          });
+        }
       }
     }
   };
@@ -323,6 +329,20 @@ export function VideoPlayer({
           togglePlay();
         }}
         playsInline
+        onError={(e) => {
+          const err = e.currentTarget.error;
+          console.error('Video Error Details:', {
+            code: err?.code,
+            message: err?.message,
+            source: videoUrl
+          });
+          // Do not kill the player immediately, just log it. 
+          // If it's a fatal error, the browser usually shows a broken video icon or black screen.
+          // We can optionally show a toast or small indicator if needed.
+        }}
+        onLoadedData={() => {
+          console.log('Video loaded:', videoUrl);
+        }}
       />
       
       {/* 2x Speed Indicator */}
