@@ -12,7 +12,8 @@ import {
   SkipForward,
   Settings,
   Loader2,
-  AlertCircle
+  AlertCircle,
+  ChevronsRight
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import {
@@ -56,6 +57,9 @@ export function VideoPlayer({
   const [progress, setProgress] = useState(0);
   const [currentTime, setCurrentTime] = useState(0);
 
+  const [isFastForwarding, setIsFastForwarding] = useState(false);
+  const [showSpeedIndicator, setShowSpeedIndicator] = useState(false);
+
   const [duration, setDuration] = useState(0);
   const [volume, setVolume] = useState(1);
 
@@ -93,6 +97,36 @@ export function VideoPlayer({
     fetchVideo();
   }, [chapterUrlId, resolution]);
 
+  // Keyboard controls
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      // Don't trigger if user is typing in an input
+      if (document.activeElement?.tagName === 'INPUT' || document.activeElement?.tagName === 'TEXTAREA') return;
+
+      switch(e.key) {
+        case 'ArrowRight':
+          handleSkip(10);
+          break;
+        case 'ArrowLeft':
+          handleSkip(-10);
+          break;
+        case ' ':
+          e.preventDefault(); // Prevent scrolling
+          togglePlay();
+          break;
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [isPlaying]); // Re-bind if needed, or better yet, use refs or stable callbacks. 
+  // togglePlay depends on IsPlaying state, so we need it in dependency or use functional update.
+  // Actually togglePlay definition uses videoRef, it doesn't depend on isPlaying state for the action itself if we check video.paused, 
+  // but the React state `isPlaying` is used in togglePlay implementation in original code?
+  // Original togglePlay: if (isPlaying) ... else ...
+  // It uses state. So we need to include it or rewrite togglePlay to check videoRef directly.
+  // Let's rely on the existing togglePlay but might assume it's stable enough or just add deps.
+  
   // Video event handlers
   useEffect(() => {
     const video = videoRef.current;
@@ -109,6 +143,10 @@ export function VideoPlayer({
 
     const handlePlay = () => setIsPlaying(true);
     const handlePause = () => setIsPlaying(false);
+    
+    // Ensure playback rate is reset on pause/play if needed, or persistent?
+    // Usually persistent implies if I pause then play, it stays 2x? No, 2x is only on HOLD.
+    // Standard playback should be 1x unless changed via settings (not implemented yet).
 
     video.addEventListener('timeupdate', handleTimeUpdate);
     video.addEventListener('loadedmetadata', handleLoadedMetadata);
@@ -164,6 +202,28 @@ export function VideoPlayer({
     if (videoRef.current) {
       videoRef.current.muted = !isMuted;
       setIsMuted(!isMuted);
+    }
+  };
+
+  const handleSkip = (seconds: number) => {
+    if (videoRef.current) {
+      videoRef.current.currentTime += seconds;
+    }
+  };
+
+  const startFastForward = () => {
+    if (videoRef.current) {
+      videoRef.current.playbackRate = 2.0;
+      setIsFastForwarding(true);
+      setShowSpeedIndicator(true);
+    }
+  };
+
+  const stopFastForward = () => {
+    if (videoRef.current) {
+      videoRef.current.playbackRate = 1.0;
+      setIsFastForwarding(false);
+      setShowSpeedIndicator(false);
     }
   };
 
@@ -239,9 +299,16 @@ export function VideoPlayer({
   return (
     <div
       ref={containerRef}
-      className="relative aspect-video bg-black group overflow-hidden"
-      onMouseLeave={() => isPlaying && setShowControls(false)}
-      onClick={() => setShowControls(true)} // Ensure click shows controls on mobile
+      className="relative aspect-video bg-black group overflow-hidden select-none"
+      onMouseLeave={() => {
+        if (isPlaying) setShowControls(false);
+        stopFastForward();
+      }}
+      onClick={() => setShowControls(true)} 
+      onMouseDown={startFastForward}
+      onMouseUp={stopFastForward}
+      onTouchStart={startFastForward}
+      onTouchEnd={stopFastForward}
     >
       {/* Video Element */}
       <video
@@ -254,6 +321,14 @@ export function VideoPlayer({
         }}
         playsInline
       />
+      
+      {/* 2x Speed Indicator */}
+      {showSpeedIndicator && (
+        <div className="absolute top-8 right-1/2 translate-x-1/2 md:right-8 md:translate-x-0 bg-black/50 backdrop-blur px-3 py-1.5 rounded-full flex items-center gap-2 text-white/90 z-20 pointer-events-none animate-in fade-in zoom-in duration-200">
+          <ChevronsRight className="w-4 h-4" />
+          <span className="text-sm font-medium">2x Speed</span>
+        </div>
+      )}
 
       {/* Controls Overlay */}
       <motion.div
@@ -303,6 +378,15 @@ export function VideoPlayer({
           {/* Controls row */}
           <div className="flex items-center justify-between gap-2">
             <div className="flex items-center gap-2 md:gap-4">
+              {/* Skip Back */}
+              <button 
+                onClick={() => handleSkip(-10)}
+                className="text-white hover:text-primary transition-colors focus:outline-none hidden md:block"
+                title="-10s"
+              >
+                <SkipBack className="w-5 h-5 fill-current" />
+              </button>
+
               {/* Play/Pause */}
               <button
                 onClick={togglePlay}
@@ -310,6 +394,16 @@ export function VideoPlayer({
               >
                 {isPlaying ? <Pause className="w-6 h-6 fill-current" /> : <Play className="w-6 h-6 fill-current" />}
               </button>
+
+              {/* Skip Forward */}
+              <button 
+                onClick={() => handleSkip(10)}
+                className="text-white hover:text-primary transition-colors focus:outline-none hidden md:block"
+                title="+10s"
+              >
+                <SkipForward className="w-5 h-5 fill-current" />
+              </button>
+
 
               {/* Volume Control */}
               <div className="flex items-center group/volume">
