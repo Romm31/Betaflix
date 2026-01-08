@@ -13,6 +13,7 @@ import {
   Settings,
   Loader2,
   AlertCircle,
+  Download,
 
   ChevronsRight,
   RotateCcw,
@@ -214,13 +215,31 @@ export function VideoPlayer({
     }
   };
 
+  const handleDownload = () => {
+    if (videoUrl) {
+      const link = document.createElement('a');
+      link.href = videoUrl;
+      link.target = '_blank';
+      link.download = `${title || 'video'}-${resolution}.mp4`;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+    }
+  };
+
   const handleSkip = (seconds: number) => {
     if (videoRef.current) {
       videoRef.current.currentTime += seconds;
     }
   };
 
-  const startFastForward = () => {
+  const startFastForward = (e: React.MouseEvent | React.TouchEvent) => {
+    // Prevent fast forward if clicking on controls (buttons, inputs)
+    const target = e.target as HTMLElement;
+    if (target.closest('button') || target.closest('input') || target.closest('[role="menuitem"]')) {
+      return;
+    }
+
     if (videoRef.current) {
       videoRef.current.playbackRate = 2.0;
       setIsFastForwarding(true);
@@ -321,6 +340,7 @@ export function VideoPlayer({
     >
       {/* Video Element */}
       <video
+        key={videoUrl} // Force remount on URL change to prevent artifacts/errors
         ref={videoRef}
         src={videoUrl}
         className="w-full h-full"
@@ -330,18 +350,14 @@ export function VideoPlayer({
         }}
         playsInline
         onError={(e) => {
-          const err = e.currentTarget.error;
-          console.error('Video Error Details:', {
-            code: err?.code,
-            message: err?.message,
-            source: videoUrl
-          });
-          // Do not kill the player immediately, just log it. 
-          // If it's a fatal error, the browser usually shows a broken video icon or black screen.
-          // We can optionally show a toast or small indicator if needed.
+           // Suppress mostly harmless NotSupportedError during switching
+           const err = e.currentTarget.error;
+           if (err?.code !== 4) {
+             console.error('Video Player Error:', err?.message);
+           }
         }}
         onLoadedData={() => {
-          console.log('Video loaded:', videoUrl);
+          // Video loaded successfully
         }}
       />
       
@@ -360,26 +376,40 @@ export function VideoPlayer({
         className="absolute inset-0 bg-gradient-to-t from-black/90 via-transparent to-black/60 flex flex-col justify-between"
       >
         {/* Top bar */}
-        <div className="p-4 flex justify-between items-start">
+        <div className="p-4 flex justify-between items-start bg-gradient-to-b from-black/80 to-transparent">
           {title && (
-            <h3 className="text-white font-medium text-lg drop-shadow-md line-clamp-1">
+            <h3 className="text-white font-medium text-lg drop-shadow-md line-clamp-1 flex-1 mr-4">
               {title}
             </h3>
           )}
+          
+          {/* Download Button */}
+          <button
+            onClick={(e) => {
+              e.stopPropagation();
+              handleDownload();
+            }}
+            className="text-white/80 hover:text-white hover:bg-white/10 p-2 rounded-full transition-colors focus:outline-none"
+            title="Download Video"
+          >
+            <Download className="w-5 h-5" />
+          </button>
         </div>
 
-        {/* Center play button (Mobile friendly: Only show if paused or hovering?) 
-            Actually, keep it as main interaction point.
-        */}
+        {/* Center play button */}
         <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
           {!isPlaying && (
-            <motion.div
+            <motion.button
               initial={{ scale: 0.5, opacity: 0 }}
               animate={{ scale: 1, opacity: 1 }}
-              className="w-16 h-16 rounded-full bg-black/50 backdrop-blur-sm flex items-center justify-center text-white border border-white/20"
+              onClick={(e) => {
+                e.stopPropagation();
+                togglePlay();
+              }}
+              className="w-16 h-16 rounded-full bg-black/50 backdrop-blur-sm flex items-center justify-center text-white border border-white/20 pointer-events-auto hover:bg-black/70 hover:scale-105 transition-all outline-none z-20"
             >
               <Play className="w-8 h-8 ml-1 fill-current" />
-            </motion.div>
+            </motion.button>
           )}
         </div>
 
