@@ -13,7 +13,10 @@ import {
   Settings,
   Loader2,
   AlertCircle,
-  ChevronsRight
+
+  ChevronsRight,
+  RotateCcw,
+  RotateCw
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import {
@@ -358,6 +361,36 @@ export function VideoPlayer({
               <Play className="w-8 h-8 ml-1 fill-current" />
             </motion.div>
           )}
+        </div>
+
+        {/* 10s Backward Skip Button - Left Overlay */}
+        <div className="absolute left-4 top-1/2 -translate-y-1/2 z-10 pointer-events-auto">
+             <button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  handleSkip(-10);
+                }}
+                className="p-3 rounded-full bg-black/50 backdrop-blur-sm text-white/90 hover:text-white hover:bg-black/70 border border-white/10 transition-all active:scale-95"
+                title="Rewind 10s"
+              >
+                <RotateCcw className="w-8 h-8" />
+                <span className="sr-only">Rewind 10s</span>
+              </button>
+        </div>
+
+        {/* 10s Forward Skip Button - Right Overlay */}
+        <div className="absolute right-4 top-1/2 -translate-y-1/2 z-10 pointer-events-auto">
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  handleSkip(10);
+                }}
+                className="p-3 rounded-full bg-black/50 backdrop-blur-sm text-white/90 hover:text-white hover:bg-black/70 border border-white/10 transition-all active:scale-95"
+                title="Skip 10s"
+              >
+                <RotateCw className="w-8 h-8" />
+                <span className="sr-only">Skip 10s</span>
+              </button>
         </div>
 
         {/* Bottom controls */}
