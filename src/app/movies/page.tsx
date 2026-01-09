@@ -10,8 +10,8 @@ import { AnimeCardCompact } from '@/components/AnimeCard';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 
-// Maximum pages available from API
-const MAX_API_PAGES = 150;
+// Maximum UI pages (each UI page = 5 API pages combined for more movies)
+const MAX_API_PAGES = 30;
 
 export default function MoviesPage() {
   const searchParams = useSearchParams();
@@ -27,25 +27,38 @@ export default function MoviesPage() {
   const [isSearching, setIsSearching] = useState(false);
   const [filteredMovies, setFilteredMovies] = useState<Anime[]>([]);
 
-  // Load movies for current page from API (1 request per page)
-  const loadMovies = useCallback(async (page: number) => {
+  // Load movies - fetch multiple API pages per UI page to get more movies
+  // Since movies are filtered from mixed content, we need to fetch more pages
+  const loadMovies = useCallback(async (uiPage: number) => {
     setIsLoading(true);
     
-    try {
-      const data = await getMovies(page);
-      
-      // De-duplicate based on urlId
-      const uniqueMovies = Array.from(
-        new Map(data.map(item => [item.urlId, item])).values()
-      );
-      
-      setMovieList(uniqueMovies);
-    } catch (error) {
-      console.error('Failed to load movies:', error);
-      setMovieList([]);
-    } finally {
-      setIsLoading(false);
+    // Each UI page fetches 5 API pages to get more movies
+    const apiPagesPerUi = 5;
+    const startPage = (uiPage - 1) * apiPagesPerUi + 1;
+    const endPage = startPage + apiPagesPerUi - 1;
+    
+    const allMovies: Anime[] = [];
+    
+    for (let page = startPage; page <= endPage; page++) {
+      try {
+        // Small delay between requests to avoid rate limiting
+        if (page > startPage) {
+          await new Promise(r => setTimeout(r, 300));
+        }
+        const data = await getMovies(page);
+        allMovies.push(...data);
+      } catch (error) {
+        console.warn(`Failed to fetch movie page ${page}:`, error);
+      }
     }
+    
+    // De-duplicate based on urlId
+    const uniqueMovies = Array.from(
+      new Map(allMovies.map(item => [item.urlId, item])).values()
+    );
+    
+    setMovieList(uniqueMovies);
+    setIsLoading(false);
   }, []);
 
   // Load movies when page changes (from URL)
@@ -279,7 +292,7 @@ export default function MoviesPage() {
 
               {/* Quick Jump Buttons */}
               <div className="flex flex-wrap justify-center gap-2">
-                {[1, 10, 25, 50, 75, 100].map(page => (
+                {[1, 5, 10, 15, 20, 30].map(page => (
                   <Button
                     key={page}
                     variant={currentPage === page ? "default" : "outline"}
