@@ -23,9 +23,18 @@ export default function AnimePage() {
       setIsLoading(true);
       // Load multiple pages to have enough for pagination (Fetch 10 pages ~ 100+ items)
       const pagesToFetch = Array.from({ length: 10 }, (_, i) => i + 1);
-      const responses = await Promise.all(
-        pagesToFetch.map(page => getLatestAnime(page))
-      );
+      
+      const responses = [];
+      for (const page of pagesToFetch) {
+        try {
+          const res = await getLatestAnime(page);
+          responses.push(res);
+          // Add a small delay between requests to avoid rate limiting (429)
+          await new Promise(resolve => setTimeout(resolve, 300));
+        } catch (error) {
+          console.error(`Failed to fetch page ${page}`, error);
+        }
+      }
       const combined = responses.flat();
       
       // De-duplicate based on urlId
