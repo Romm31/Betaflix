@@ -13,7 +13,15 @@ import {
   MAX_ITEMS,
 } from './types';
 
-const BASE_URL = 'https://api.sansekai.my.id/api';
+// Use local proxy to avoid CORS issues
+const getProxyUrl = () => {
+  // In browser, use relative URL. On server, use absolute URL.
+  if (typeof window !== 'undefined') {
+    return '/api/anime';
+  }
+  // For server-side, we can call external API directly
+  return 'https://api.sansekai.my.id/api';
+};
 
 // Generic fetch wrapper with error handling
 async function fetchAPI<T>(
@@ -22,17 +30,39 @@ async function fetchAPI<T>(
 ): Promise<T> {
   const { revalidate = 60, ...fetchOptions } = options || {};
   
-  const url = `${BASE_URL}${endpoint}`;
+  // Check if we're in browser or server
+  const isClient = typeof window !== 'undefined';
+  
+  let url: string;
+  if (isClient) {
+    // Use proxy for client-side requests
+    const params = new URLSearchParams();
+    
+    // Parse the endpoint to extract query params
+    const [basePath, queryString] = endpoint.split('?');
+    params.set('endpoint', basePath);
+    
+    if (queryString) {
+      const existingParams = new URLSearchParams(queryString);
+      existingParams.forEach((value, key) => {
+        params.set(key, value);
+      });
+    }
+    
+    url = `/api/anime?${params.toString()}`;
+  } else {
+    // Direct API call for server-side
+    url = `https://api.sansekai.my.id/api${endpoint}`;
+  }
   
   try {
     const res = await fetch(url, {
       ...fetchOptions,
       headers: {
         'Accept': 'application/json',
-        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
         ...fetchOptions.headers,
       },
-      next: revalidate === false ? { revalidate: 0 } : { revalidate },
+      ...(isClient ? {} : { next: revalidate === false ? { revalidate: 0 } : { revalidate } }),
     });
 
     if (!res.ok) {
