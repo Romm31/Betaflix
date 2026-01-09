@@ -1,98 +1,92 @@
 'use client';
 
-import { useState, useEffect, useCallback, useMemo } from 'react';
-import { Film, Search, ChevronLeft, ChevronRight } from 'lucide-react';
+import { useState, useEffect, useCallback } from 'react';
+import { Film, Search, ChevronLeft, ChevronRight, ChevronsLeft, ChevronsRight } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { getMovies } from '@/lib/api';
-import { Anime, MAX_ITEMS } from '@/lib/types';
+import { Anime } from '@/lib/types';
 import { AnimeCardCompact } from '@/components/AnimeCard';
-import { GridSkeleton } from '@/components/Skeletons';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 
+// Maximum UI pages (each UI page = 10 API pages combined)
+const MAX_API_PAGES = 15;
+
 export default function MoviesPage() {
-  const [allMovies, setAllMovies] = useState<Anime[]>([]);
+  const [movieList, setMovieList] = useState<Anime[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [currentPage, setCurrentPage] = useState(1);
   const [searchQuery, setSearchQuery] = useState('');
+  const [isSearching, setIsSearching] = useState(false);
+  const [filteredMovies, setFilteredMovies] = useState<Anime[]>([]);
 
-  const itemsPerPage = MAX_ITEMS.MOVIES_PER_PAGE;
-
-  const loadMovies = useCallback(async () => {
-    try {
-      setIsLoading(true);
-      
-      // Fetch pages sequentially to avoid 429/Rate Limit
-      // We will loop from page 1 to 5
-      const collected: Anime[] = [];
-      
-      for (let i = 1; i <= 10; i++) {
-        let retries = 0;
-        const maxRetries = 3;
-        let success = false;
-
-        while (!success && retries < maxRetries) {
-          try {
-            // Add a small delay between requests to avoid rate limiting
-            // Increase delay if retrying
-            const delay = i === 1 && retries === 0 ? 0 : 300 + (retries * 1000);
-            if (delay > 0) await new Promise(r => setTimeout(r, delay));
-            
-            const pageData = await getMovies(i);
-            collected.push(...pageData);
-            success = true;
-          } catch (err) {
-            console.warn(`Failed to fetch movie page ${i} (attempt ${retries + 1})`, err);
-            retries++;
-          }
+  // Load movies - fetch multiple API pages and combine (since movies are filtered from mixed content)
+  const loadMovies = useCallback(async (uiPage: number) => {
+    setIsLoading(true);
+    
+    // Since movies are filtered from recommended (mixed content), we need to fetch multiple API pages
+    // to get enough movies for one UI page
+    // Each UI page = 10 API pages combined
+    const apiPagesPerUiPage = 10;
+    const startApiPage = (uiPage - 1) * apiPagesPerUiPage + 1;
+    const endApiPage = startApiPage + apiPagesPerUiPage - 1;
+    
+    const allMovies: Anime[] = [];
+    
+    for (let apiPage = startApiPage; apiPage <= endApiPage; apiPage++) {
+      try {
+        // Add small delay between requests to avoid rate limiting
+        if (apiPage > startApiPage) {
+          await new Promise(resolve => setTimeout(resolve, 300));
         }
-
-        if (!success) {
-           console.error(`Could not fetch movie page ${i} after ${maxRetries} attempts.`);
-           // If page 1 fails completely, we might want to stop. 
-           // But if page 2 fails, we can keep page 1.
-           if (i === 1) break; 
-        }
+        
+        const data = await getMovies(apiPage);
+        allMovies.push(...data);
+      } catch (error) {
+        console.warn(`Failed to load API page ${apiPage}:`, error);
+        // Continue with other pages even if one fails
       }
-      
-      // Filter unique items
-      const uniqueMovies = Array.from(new Map(collected.map(item => [item.urlId, item])).values());
-      setAllMovies(uniqueMovies);
-    } catch (error) {
-      console.error('Failed to load movies:', error);
-    } finally {
-      setIsLoading(false);
     }
+    
+    // De-duplicate based on urlId
+    const uniqueMovies = Array.from(
+      new Map(allMovies.map(item => [item.urlId, item])).values()
+    );
+    
+    setMovieList(uniqueMovies);
+    setIsLoading(false);
   }, []);
 
+  // Load movies when page changes
   useEffect(() => {
-    loadMovies();
-  }, [loadMovies]);
+    if (!searchQuery.trim()) {
+      loadMovies(currentPage);
+      setIsSearching(false);
+    }
+  }, [currentPage, loadMovies, searchQuery]);
 
-  // Filter by search
-  const filteredMovies = useMemo(() => {
-    if (!searchQuery.trim()) return allMovies;
-    return allMovies.filter(movie => 
-      movie.title.toLowerCase().includes(searchQuery.toLowerCase())
-    );
-  }, [allMovies, searchQuery]);
-
-  // Paginate
-  const totalPages = Math.ceil(filteredMovies.length / itemsPerPage);
-  const paginatedMovies = useMemo(() => {
-    const start = (currentPage - 1) * itemsPerPage;
-    return filteredMovies.slice(start, start + itemsPerPage);
-  }, [filteredMovies, currentPage, itemsPerPage]);
-
-  // Reset to page 1 when search changes
+  // Handle search - filter from current page
   useEffect(() => {
-    setCurrentPage(1);
-  }, [searchQuery]);
+    if (searchQuery.trim()) {
+      setIsSearching(true);
+      const filtered = movieList.filter(movie =>
+        movie.title.toLowerCase().includes(searchQuery.toLowerCase())
+      );
+      setFilteredMovies(filtered);
+    } else {
+      setIsSearching(false);
+      setFilteredMovies([]);
+    }
+  }, [searchQuery, movieList]);
 
   const handlePageChange = (page: number) => {
+    if (page < 1 || page > MAX_API_PAGES) return;
     setCurrentPage(page);
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
+
+  // Display either search results or paginated movies
+  const displayedMovies = isSearching ? filteredMovies : movieList;
 
   return (
     <div className="min-h-screen bg-background relative overflow-hidden">
@@ -130,9 +124,9 @@ export default function MoviesPage() {
             className="text-muted-foreground text-lg md:text-xl max-w-2xl mx-auto leading-relaxed"
           >
             Nonton movie anime terbaik dengan kualitas HD tanpa batas.
-            {!isLoading && allMovies.length > 0 && (
+            {!isSearching && (
               <span className="inline-block px-2 py-0.5 ml-2 rounded-full bg-secondary text-secondary-foreground text-xs font-bold align-middle">
-                {allMovies.length}+ Judul
+                Halaman {currentPage}
               </span>
             )}
           </motion.p>
@@ -174,7 +168,7 @@ export default function MoviesPage() {
           {isLoading ? (
             <div className="space-y-8">
               <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-6">
-                {Array.from({ length: 12 }).map((_, i) => (
+                {Array.from({ length: 24 }).map((_, i) => (
                   <div key={i} className="space-y-3">
                     <div className="aspect-[2/3] rounded-xl bg-muted/50 animate-pulse" />
                     <div className="h-4 bg-muted/50 rounded animate-pulse w-3/4" />
@@ -182,7 +176,7 @@ export default function MoviesPage() {
                 ))}
               </div>
             </div>
-          ) : paginatedMovies.length === 0 ? (
+          ) : displayedMovies.length === 0 ? (
             <motion.div 
               initial={{ opacity: 0, scale: 0.95 }}
               animate={{ opacity: 1, scale: 1 }}
@@ -193,7 +187,9 @@ export default function MoviesPage() {
               </div>
               <h3 className="text-2xl font-bold mb-2">Tidak ditemukan</h3>
               <p className="text-muted-foreground">
-                Maaf, kami tidak dapat menemukan movie dengan kata kunci "{searchQuery}"
+                {isSearching 
+                  ? `Maaf, kami tidak dapat menemukan movie dengan kata kunci "${searchQuery}"`
+                  : 'Halaman ini kosong'}
               </p>
             </motion.div>
           ) : (
@@ -202,7 +198,7 @@ export default function MoviesPage() {
               className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-6"
             >
               <AnimatePresence mode='popLayout'>
-                {paginatedMovies.map((movie, index) => (
+                {displayedMovies.map((movie, index) => (
                   <AnimeCardCompact 
                     key={movie.urlId} 
                     anime={movie} 
@@ -213,40 +209,90 @@ export default function MoviesPage() {
             </motion.div>
           )}
 
-          {/* Pagination */}
-          {!isLoading && totalPages > 1 && (
+          {/* Pagination - Only show when not searching */}
+          {!isLoading && !isSearching && (
             <motion.div 
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               transition={{ delay: 0.5 }}
               className="mt-16 flex flex-col items-center gap-4"
             >
-              <div className="inline-flex items-center gap-2 p-2 bg-background/50 backdrop-blur-sm border border-border/50 rounded-full shadow-lg">
+              <div className="inline-flex items-center gap-1 p-2 bg-background/50 backdrop-blur-sm border border-border/50 rounded-full shadow-lg">
+                {/* First Page */}
                 <Button
                   variant="ghost"
                   size="icon"
-                  onClick={() => handlePageChange(Math.max(1, currentPage - 1))}
+                  onClick={() => handlePageChange(1)}
+                  disabled={currentPage === 1}
+                  className="rounded-full w-10 h-10 hover:bg-accent/10 hover:text-accent"
+                >
+                  <ChevronsLeft className="w-5 h-5" />
+                </Button>
+
+                {/* Previous Page */}
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  onClick={() => handlePageChange(currentPage - 1)}
                   disabled={currentPage === 1}
                   className="rounded-full w-10 h-10 hover:bg-accent/10 hover:text-accent"
                 >
                   <ChevronLeft className="w-5 h-5" />
                 </Button>
                 
-                <div className="px-4 font-medium text-sm text-muted-foreground">
-                  <span className="text-foreground font-bold">{currentPage}</span>
-                  <span className="mx-2">/</span>
-                  {totalPages}
+                {/* Page Number Input */}
+                <div className="flex items-center gap-2 px-2">
+                  <Input
+                    type="number"
+                    min={1}
+                    max={MAX_API_PAGES}
+                    value={currentPage}
+                    onChange={(e) => {
+                      const val = parseInt(e.target.value);
+                      if (val >= 1 && val <= MAX_API_PAGES) {
+                        handlePageChange(val);
+                      }
+                    }}
+                    className="w-16 h-8 text-center text-sm font-bold border-border/50 rounded-lg"
+                  />
                 </div>
                 
+                {/* Next Page */}
                 <Button
                   variant="ghost"
                   size="icon"
-                  onClick={() => handlePageChange(Math.min(totalPages, currentPage + 1))}
-                  disabled={currentPage === totalPages}
+                  onClick={() => handlePageChange(currentPage + 1)}
+                  disabled={currentPage === MAX_API_PAGES}
                   className="rounded-full w-10 h-10 hover:bg-accent/10 hover:text-accent"
                 >
                   <ChevronRight className="w-5 h-5" />
                 </Button>
+
+                {/* Last Page */}
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  onClick={() => handlePageChange(MAX_API_PAGES)}
+                  disabled={currentPage === MAX_API_PAGES}
+                  className="rounded-full w-10 h-10 hover:bg-accent/10 hover:text-accent"
+                >
+                  <ChevronsRight className="w-5 h-5" />
+                </Button>
+              </div>
+
+              {/* Quick Jump Buttons */}
+              <div className="flex flex-wrap justify-center gap-2">
+                {[1, 3, 5, 8, 10, 15].map(page => (
+                  <Button
+                    key={page}
+                    variant={currentPage === page ? "default" : "outline"}
+                    size="sm"
+                    onClick={() => handlePageChange(page)}
+                    className="rounded-full"
+                  >
+                    {page}
+                  </Button>
+                ))}
               </div>
             </motion.div>
           )}
