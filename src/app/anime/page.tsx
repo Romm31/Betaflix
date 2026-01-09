@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect, useCallback } from 'react';
+import { useSearchParams, useRouter } from 'next/navigation';
 import { Tv, Search, ChevronLeft, ChevronRight, ChevronsLeft, ChevronsRight } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { getRecommendedAnime, searchAnime } from '@/lib/api';
@@ -9,54 +10,45 @@ import { AnimeCardCompact } from '@/components/AnimeCard';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 
-// Maximum pages available from API (can go up to 150+)
+// Maximum pages available from API
 const MAX_API_PAGES = 150;
 
 export default function AnimePage() {
+  const searchParams = useSearchParams();
+  const router = useRouter();
+  
+  // Get page from URL, default to 1
+  const urlPage = parseInt(searchParams.get('page') || '1', 10);
+  const currentPage = isNaN(urlPage) || urlPage < 1 ? 1 : Math.min(urlPage, MAX_API_PAGES);
+
   const [animeList, setAnimeList] = useState<Anime[]>([]);
   const [isLoading, setIsLoading] = useState(true);
-  const [currentPage, setCurrentPage] = useState(1);
   const [searchQuery, setSearchQuery] = useState('');
   const [isSearching, setIsSearching] = useState(false);
   const [searchResults, setSearchResults] = useState<Anime[]>([]);
 
-  // Load anime for current page from API with retry logic
+  // Load anime for current page from API (1 request per page)
   const loadAnime = useCallback(async (page: number) => {
     setIsLoading(true);
     
-    let retries = 0;
-    const maxRetries = 3;
-    
-    while (retries < maxRetries) {
-      try {
-        // Add delay if retrying
-        if (retries > 0) {
-          await new Promise(resolve => setTimeout(resolve, 1000 * retries));
-        }
-        
-        const data = await getRecommendedAnime(page);
-        
-        // De-duplicate based on urlId
-        const uniqueAnime = Array.from(
-          new Map(data.map(item => [item.urlId, item])).values()
-        );
-        
-        setAnimeList(uniqueAnime);
-        setIsLoading(false);
-        return; // Success, exit the function
-      } catch (error) {
-        console.warn(`Failed to load anime page ${page} (attempt ${retries + 1}):`, error);
-        retries++;
-      }
+    try {
+      const data = await getRecommendedAnime(page);
+      
+      // De-duplicate based on urlId
+      const uniqueAnime = Array.from(
+        new Map(data.map(item => [item.urlId, item])).values()
+      );
+      
+      setAnimeList(uniqueAnime);
+    } catch (error) {
+      console.error('Failed to load anime:', error);
+      setAnimeList([]);
+    } finally {
+      setIsLoading(false);
     }
-    
-    // All retries failed
-    console.error(`Could not load anime page ${page} after ${maxRetries} attempts`);
-    setAnimeList([]);
-    setIsLoading(false);
   }, []);
 
-  // Load anime when page changes
+  // Load anime when page changes (from URL)
   useEffect(() => {
     if (!searchQuery.trim()) {
       loadAnime(currentPage);
@@ -68,7 +60,6 @@ export default function AnimePage() {
     if (!query.trim()) {
       setIsSearching(false);
       setSearchResults([]);
-      loadAnime(currentPage);
       return;
     }
 
@@ -76,7 +67,6 @@ export default function AnimePage() {
       setIsSearching(true);
       setIsLoading(true);
       const results = await searchAnime(query, 50);
-      // Filter to anime only (not movies)
       const animeOnly = results.filter(item => item.contentType === 'anime');
       setSearchResults(animeOnly);
     } catch (error) {
@@ -85,7 +75,7 @@ export default function AnimePage() {
     } finally {
       setIsLoading(false);
     }
-  }, [currentPage, loadAnime]);
+  }, []);
 
   // Debounced search
   useEffect(() => {
@@ -95,9 +85,10 @@ export default function AnimePage() {
     return () => clearTimeout(timer);
   }, [searchQuery, handleSearch]);
 
+  // Navigate to a different page via URL
   const handlePageChange = (page: number) => {
     if (page < 1 || page > MAX_API_PAGES) return;
-    setCurrentPage(page);
+    router.push(`/anime?page=${page}`, { scroll: false });
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
@@ -205,8 +196,13 @@ export default function AnimePage() {
               <p className="text-muted-foreground">
                 {isSearching 
                   ? `Maaf, kami tidak dapat menemukan anime dengan kata kunci "${searchQuery}"`
-                  : 'Halaman ini kosong'}
+                  : 'Halaman ini kosong atau terjadi error. Coba refresh atau kembali ke halaman 1.'}
               </p>
+              {!isSearching && (
+                <Button className="mt-4" onClick={() => handlePageChange(1)}>
+                  Ke Halaman 1
+                </Button>
+              )}
             </motion.div>
           ) : (
             <motion.div 

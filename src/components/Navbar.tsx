@@ -22,8 +22,8 @@ import { cn } from '@/lib/utils';
 
 const navLinks = [
   { href: '/', label: 'Home', icon: Home },
-  { href: '/anime', label: 'Anime', icon: Tv },
-  { href: '/movies', label: 'Movie', icon: Film },
+  { href: '/anime?page=1', label: 'Anime', icon: Tv },
+  { href: '/movies?page=1', label: 'Movie', icon: Film },
   { href: '/search', label: 'Search', icon: Search },
 ];
 
@@ -79,7 +79,8 @@ export function Navbar() {
           {/* Desktop Navigation */}
           <div className="hidden md:flex items-center gap-1 bg-black/20 backdrop-blur-md px-2 py-1.5 rounded-full border border-white/5 shadow-inner">
             {navLinks.map((link) => {
-              const isActive = pathname === link.href;
+              const linkPath = link.href.split('?')[0];
+              const isActive = pathname === linkPath;
               return (
                 <Link
                   key={link.href}
@@ -163,7 +164,8 @@ export function Navbar() {
                   <div className="flex-1 overflow-y-auto py-6 px-4">
                     <nav className="flex flex-col gap-2">
                        {navLinks.map((link, i) => {
-                        const isActive = pathname === link.href;
+                        const linkPath = link.href.split('?')[0];
+                        const isActive = pathname === linkPath;
                         return (
                           <Link
                             key={link.href}

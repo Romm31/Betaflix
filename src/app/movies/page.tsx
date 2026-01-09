@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect, useCallback } from 'react';
+import { useSearchParams, useRouter } from 'next/navigation';
 import { Film, Search, ChevronLeft, ChevronRight, ChevronsLeft, ChevronsRight } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { getMovies } from '@/lib/api';
@@ -9,55 +10,45 @@ import { AnimeCardCompact } from '@/components/AnimeCard';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 
-// Maximum UI pages (each UI page = 10 API pages combined)
-const MAX_API_PAGES = 15;
+// Maximum pages available from API
+const MAX_API_PAGES = 150;
 
 export default function MoviesPage() {
+  const searchParams = useSearchParams();
+  const router = useRouter();
+  
+  // Get page from URL, default to 1
+  const urlPage = parseInt(searchParams.get('page') || '1', 10);
+  const currentPage = isNaN(urlPage) || urlPage < 1 ? 1 : Math.min(urlPage, MAX_API_PAGES);
+
   const [movieList, setMovieList] = useState<Anime[]>([]);
   const [isLoading, setIsLoading] = useState(true);
-  const [currentPage, setCurrentPage] = useState(1);
   const [searchQuery, setSearchQuery] = useState('');
   const [isSearching, setIsSearching] = useState(false);
   const [filteredMovies, setFilteredMovies] = useState<Anime[]>([]);
 
-  // Load movies - fetch multiple API pages and combine (since movies are filtered from mixed content)
-  const loadMovies = useCallback(async (uiPage: number) => {
+  // Load movies for current page from API (1 request per page)
+  const loadMovies = useCallback(async (page: number) => {
     setIsLoading(true);
     
-    // Since movies are filtered from recommended (mixed content), we need to fetch multiple API pages
-    // to get enough movies for one UI page
-    // Each UI page = 10 API pages combined
-    const apiPagesPerUiPage = 10;
-    const startApiPage = (uiPage - 1) * apiPagesPerUiPage + 1;
-    const endApiPage = startApiPage + apiPagesPerUiPage - 1;
-    
-    const allMovies: Anime[] = [];
-    
-    for (let apiPage = startApiPage; apiPage <= endApiPage; apiPage++) {
-      try {
-        // Add small delay between requests to avoid rate limiting
-        if (apiPage > startApiPage) {
-          await new Promise(resolve => setTimeout(resolve, 300));
-        }
-        
-        const data = await getMovies(apiPage);
-        allMovies.push(...data);
-      } catch (error) {
-        console.warn(`Failed to load API page ${apiPage}:`, error);
-        // Continue with other pages even if one fails
-      }
+    try {
+      const data = await getMovies(page);
+      
+      // De-duplicate based on urlId
+      const uniqueMovies = Array.from(
+        new Map(data.map(item => [item.urlId, item])).values()
+      );
+      
+      setMovieList(uniqueMovies);
+    } catch (error) {
+      console.error('Failed to load movies:', error);
+      setMovieList([]);
+    } finally {
+      setIsLoading(false);
     }
-    
-    // De-duplicate based on urlId
-    const uniqueMovies = Array.from(
-      new Map(allMovies.map(item => [item.urlId, item])).values()
-    );
-    
-    setMovieList(uniqueMovies);
-    setIsLoading(false);
   }, []);
 
-  // Load movies when page changes
+  // Load movies when page changes (from URL)
   useEffect(() => {
     if (!searchQuery.trim()) {
       loadMovies(currentPage);
@@ -79,9 +70,10 @@ export default function MoviesPage() {
     }
   }, [searchQuery, movieList]);
 
+  // Navigate to a different page via URL
   const handlePageChange = (page: number) => {
     if (page < 1 || page > MAX_API_PAGES) return;
-    setCurrentPage(page);
+    router.push(`/movies?page=${page}`, { scroll: false });
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
@@ -189,8 +181,13 @@ export default function MoviesPage() {
               <p className="text-muted-foreground">
                 {isSearching 
                   ? `Maaf, kami tidak dapat menemukan movie dengan kata kunci "${searchQuery}"`
-                  : 'Halaman ini kosong'}
+                  : 'Halaman ini tidak memiliki movie. Coba halaman lain.'}
               </p>
+              {!isSearching && (
+                <Button className="mt-4" onClick={() => handlePageChange(1)}>
+                  Ke Halaman 1
+                </Button>
+              )}
             </motion.div>
           ) : (
             <motion.div 
@@ -282,7 +279,7 @@ export default function MoviesPage() {
 
               {/* Quick Jump Buttons */}
               <div className="flex flex-wrap justify-center gap-2">
-                {[1, 3, 5, 8, 10, 15].map(page => (
+                {[1, 10, 25, 50, 75, 100].map(page => (
                   <Button
                     key={page}
                     variant={currentPage === page ? "default" : "outline"}
