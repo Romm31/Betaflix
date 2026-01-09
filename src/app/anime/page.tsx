@@ -27,8 +27,16 @@ export default function AnimePage() {
         pagesToFetch.map(page => getLatestAnime(page))
       );
       const combined = responses.flat();
+      
+      // De-duplicate based on urlId
+      // The API might return the same anime multiple times if it has multiple recent updates (e.g. Ep 1 and Ep 2)
+      // We only want to show the series once
+      const uniqueAnime = Array.from(
+        new Map(combined.map(item => [item.urlId, item])).values()
+      );
+
       // Filter to anime series only
-      const series = combined.filter(item => 
+      const series = uniqueAnime.filter(item => 
         item.contentType === 'anime'
       );
       setAllAnime(series);
