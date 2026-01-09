@@ -142,7 +142,7 @@ export default function AnimePage() {
             Jelajahi koleksi anime series terlengkap dengan kualitas terbaik.
             {!isSearching && (
               <span className="inline-block px-2 py-0.5 ml-2 rounded-full bg-secondary text-secondary-foreground text-xs font-bold align-middle">
-                Halaman {currentPage} / {MAX_API_PAGES}
+                Halaman {currentPage}
               </span>
             )}
           </motion.p>
@@ -271,7 +271,6 @@ export default function AnimePage() {
                     }}
                     className="w-16 h-8 text-center text-sm font-bold border-border/50 rounded-lg"
                   />
-                  <span className="text-muted-foreground text-sm">/ {MAX_API_PAGES}</span>
                 </div>
                 
                 {/* Next Page */}

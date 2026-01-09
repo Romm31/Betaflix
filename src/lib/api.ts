@@ -114,8 +114,48 @@ export async function searchAnime(query: string, limit: number = MAX_ITEMS.SEARC
     });
     return sorted.slice(0, limit);
   } catch (error) {
-    console.error('Failed to search anime:', error);
-    return [];
+    console.warn('Search API failed, using fallback search...', error);
+    
+    // Fallback: Search in recommended data (fetch multiple pages and filter)
+    try {
+      const allResults: Anime[] = [];
+      const queryLower = query.toLowerCase();
+      
+      // Fetch first 5 pages and search through them
+      for (let page = 1; page <= 5; page++) {
+        try {
+          const response = await fetchAPI<LatestAnimeResponse>(
+            `/anime/recommended?page=${page}`,
+            { revalidate: 300 }
+          );
+          const normalized = normalizeAnimeList(response || [], false);
+          const matches = normalized.filter(item => 
+            item.title.toLowerCase().includes(queryLower)
+          );
+          allResults.push(...matches);
+          
+          // If we found enough results, stop
+          if (allResults.length >= limit) break;
+          
+          // Small delay to avoid rate limiting
+          await new Promise(r => setTimeout(r, 200));
+        } catch (pageError) {
+          console.warn(`Failed to fetch page ${page} for search fallback`);
+        }
+      }
+      
+      // De-duplicate and sort
+      const unique = Array.from(new Map(allResults.map(item => [item.urlId, item])).values());
+      const sorted = unique.sort((a, b) => {
+        if (a.contentType === 'anime' && b.contentType === 'movie') return -1;
+        if (a.contentType === 'movie' && b.contentType === 'anime') return 1;
+        return 0;
+      });
+      return sorted.slice(0, limit);
+    } catch (fallbackError) {
+      console.error('Fallback search also failed:', fallbackError);
+      return [];
+    }
   }
 }
 
@@ -138,31 +178,25 @@ export async function getAnimeDetail(urlId: string): Promise<AnimeDetail | null>
   }
 }
 
-// Get all anime movies with pagination and fallback
+// Get all anime movies with pagination (using recommended endpoint and filtering)
 export async function getMovies(page: number = 1, limit?: number): Promise<Anime[]> {
   try {
-    const response = await fetchAPI<MovieResponse>(
-      `/anime/movie?page=${page}`,
+    // Use recommended endpoint since movie endpoint is blocked (403)
+    const response = await fetchAPI<LatestAnimeResponse>(
+      `/anime/recommended?page=${page}`,
       { revalidate: 60 }
     );
-    // Pass true to mark these as from movie endpoint
-    const normalized = normalizeAnimeList(response || [], true);
-    return limit ? normalized.slice(0, limit) : normalized;
+    
+    const normalized = normalizeAnimeList(response || [], false);
+    
+    // Filter for movies (totalEpisodes === 1 or contentType === 'movie')
+    const movies = normalized.filter(item => 
+      item.totalEpisodes === 1 || item.contentType === 'movie'
+    );
+    
+    return limit ? movies.slice(0, limit) : movies;
   } catch (error) {
-    // Log as warning instead of error to not alarm user, since we handle it
-    console.warn(`Failed to fetch movies endpoint (page ${page}), trying fallback...`);
-
-    // Fallback strategy: If specific movie endpoint fails, try to find movies in latest anime
-    // We only do this for page 1 to ensure at least SOME content shows up
-    if (page === 1) {
-      try {
-        const latest = await getLatestAnime(1);
-        const movies = latest.filter(item => item.contentType === 'movie' || item.totalEpisodes === 1 || item.type === 'Movie');
-        return limit ? movies.slice(0, limit) : movies;
-      } catch (fbError) {
-        console.warn('Fallback search failed');
-      }
-    }
+    console.error('Failed to fetch movies:', error);
     return [];
   }
 }
