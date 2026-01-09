@@ -21,12 +21,12 @@ export default function AnimePage() {
   const loadAnime = useCallback(async () => {
     try {
       setIsLoading(true);
-      // Load multiple pages to have enough for pagination
-      const [page1, page2] = await Promise.all([
-        getLatestAnime(1),
-        getLatestAnime(2),
-      ]);
-      const combined = [...page1, ...page2];
+      // Load multiple pages to have enough for pagination (Fetch 10 pages ~ 100+ items)
+      const pagesToFetch = Array.from({ length: 10 }, (_, i) => i + 1);
+      const responses = await Promise.all(
+        pagesToFetch.map(page => getLatestAnime(page))
+      );
+      const combined = responses.flat();
       // Filter to anime series only
       const series = combined.filter(item => 
         item.contentType === 'anime'
