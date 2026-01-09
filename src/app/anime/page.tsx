@@ -29,7 +29,7 @@ export default function AnimePage() {
       const combined = [...page1, ...page2];
       // Filter to anime series only
       const series = combined.filter(item => 
-        item.totalEpisodes && item.totalEpisodes > 1
+        item.contentType === 'anime'
       );
       setAllAnime(series);
     } catch (error) {

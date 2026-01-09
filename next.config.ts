@@ -23,6 +23,11 @@ const nextConfig: NextConfig = {
         hostname: 'animekita.org',
         pathname: '/**',
       },
+      {
+        protocol: 'https',
+        hostname: 'otakudesu.best',
+        pathname: '/**',
+      },
     ],
   },
 };

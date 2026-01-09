@@ -146,10 +146,24 @@ export type Resolution = '360p' | '480p' | '720p' | '1080p';
 // Detect content type based on data (movie = no episodes or type is Movie)
 function detectContentType(raw: RawAnime, isFromMovieEndpoint: boolean = false): ContentType {
   if (isFromMovieEndpoint) return 'movie';
-  // If total_episode is 1 or undefined and it looks like a movie
-  if (raw.total_episode === 1 || raw.total_episode === undefined) {
+  
+  // If explicitly Movie in lastch
+  if (raw.lastch && raw.lastch.toLowerCase().includes('movie')) {
     return 'movie';
   }
+
+  // If explicitly Episode in lastch (e.g. "Ep 1", "Episode 12")
+  if (raw.lastch && (raw.lastch.includes('Ep') || raw.lastch.includes('Episode'))) {
+    return 'anime';
+  }
+
+  // Fallback: If total_episode is 1, it's a movie
+  if (raw.total_episode === 1) {
+    return 'movie';
+  }
+
+  // Default to anime for the latest endpoint as it mostly contains series
+  // The movie endpoint is separated, so items in latest are *usually* series
   return 'anime';
 }
 
