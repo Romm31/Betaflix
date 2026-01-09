@@ -1,104 +1,108 @@
 'use client';
 
-import { useState, useEffect, useCallback, useMemo } from 'react';
-import { Tv, Search, ChevronLeft, ChevronRight } from 'lucide-react';
+import { useState, useEffect, useCallback } from 'react';
+import { Tv, Search, ChevronLeft, ChevronRight, ChevronsLeft, ChevronsRight } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { getRecommendedAnime } from '@/lib/api';
-import { Anime, MAX_ITEMS } from '@/lib/types';
+import { getRecommendedAnime, searchAnime } from '@/lib/api';
+import { Anime } from '@/lib/types';
 import { AnimeCardCompact } from '@/components/AnimeCard';
-import { GridSkeleton } from '@/components/Skeletons';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 
+// Maximum pages available from API (can go up to 150+)
+const MAX_API_PAGES = 150;
+
 export default function AnimePage() {
-  const [allAnime, setAllAnime] = useState<Anime[]>([]);
+  const [animeList, setAnimeList] = useState<Anime[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [currentPage, setCurrentPage] = useState(1);
   const [searchQuery, setSearchQuery] = useState('');
+  const [isSearching, setIsSearching] = useState(false);
+  const [searchResults, setSearchResults] = useState<Anime[]>([]);
 
-  const itemsPerPage = MAX_ITEMS.ANIME_PER_PAGE;
-
-  const loadAnime = useCallback(async () => {
-    try {
-      setIsLoading(true);
-      // Load multiple pages to have enough for pagination (Fetch 10 pages ~ 100+ items)
-      const pagesToFetch = Array.from({ length: 10 }, (_, i) => i + 1);
-      
-      const responses = [];
-      for (const page of pagesToFetch) {
-        let retries = 0;
-        const maxRetries = 3;
-        let success = false;
-
-        while (!success && retries < maxRetries) {
-          try {
-            // Add delay between requests to avoid rate limiting
-            // Increase delay if retrying (exponential backoff)
-            const delay = page === 1 && retries === 0 ? 0 : 500 + (retries * 1000);
-            if (delay > 0) await new Promise(resolve => setTimeout(resolve, delay));
-
-            const res = await getRecommendedAnime(page);
-            responses.push(res);
-            success = true;
-          } catch (error) {
-            console.warn(`Failed to fetch page ${page} (attempt ${retries + 1})`, error);
-            retries++;
-          }
+  // Load anime for current page from API with retry logic
+  const loadAnime = useCallback(async (page: number) => {
+    setIsLoading(true);
+    
+    let retries = 0;
+    const maxRetries = 3;
+    
+    while (retries < maxRetries) {
+      try {
+        // Add delay if retrying
+        if (retries > 0) {
+          await new Promise(resolve => setTimeout(resolve, 1000 * retries));
         }
         
-        if (!success) {
-           console.error(`Could not fetch anime page ${page} after ${maxRetries} attempts.`);
-        }
+        const data = await getRecommendedAnime(page);
+        
+        // De-duplicate based on urlId
+        const uniqueAnime = Array.from(
+          new Map(data.map(item => [item.urlId, item])).values()
+        );
+        
+        setAnimeList(uniqueAnime);
+        setIsLoading(false);
+        return; // Success, exit the function
+      } catch (error) {
+        console.warn(`Failed to load anime page ${page} (attempt ${retries + 1}):`, error);
+        retries++;
       }
-      const combined = responses.flat();
-      
-      // De-duplicate based on urlId
-      // The API might return the same anime multiple times if it has multiple recent updates (e.g. Ep 1 and Ep 2)
-      // We only want to show the series once
-      const uniqueAnime = Array.from(
-        new Map(combined.map(item => [item.urlId, item])).values()
-      );
+    }
+    
+    // All retries failed
+    console.error(`Could not load anime page ${page} after ${maxRetries} attempts`);
+    setAnimeList([]);
+    setIsLoading(false);
+  }, []);
 
-      // Filter to anime series only
-      const series = uniqueAnime.filter(item => 
-        item.contentType === 'anime'
-      );
-      setAllAnime(series);
+  // Load anime when page changes
+  useEffect(() => {
+    if (!searchQuery.trim()) {
+      loadAnime(currentPage);
+    }
+  }, [currentPage, loadAnime, searchQuery]);
+
+  // Handle search
+  const handleSearch = useCallback(async (query: string) => {
+    if (!query.trim()) {
+      setIsSearching(false);
+      setSearchResults([]);
+      loadAnime(currentPage);
+      return;
+    }
+
+    try {
+      setIsSearching(true);
+      setIsLoading(true);
+      const results = await searchAnime(query, 50);
+      // Filter to anime only (not movies)
+      const animeOnly = results.filter(item => item.contentType === 'anime');
+      setSearchResults(animeOnly);
     } catch (error) {
-      console.error('Failed to load anime:', error);
+      console.error('Failed to search:', error);
+      setSearchResults([]);
     } finally {
       setIsLoading(false);
     }
-  }, []);
+  }, [currentPage, loadAnime]);
 
+  // Debounced search
   useEffect(() => {
-    loadAnime();
-  }, [loadAnime]);
-
-  // Filter by search
-  const filteredAnime = useMemo(() => {
-    if (!searchQuery.trim()) return allAnime;
-    return allAnime.filter(anime => 
-      anime.title.toLowerCase().includes(searchQuery.toLowerCase())
-    );
-  }, [allAnime, searchQuery]);
-
-  // Paginate
-  const totalPages = Math.ceil(filteredAnime.length / itemsPerPage);
-  const paginatedAnime = useMemo(() => {
-    const start = (currentPage - 1) * itemsPerPage;
-    return filteredAnime.slice(start, start + itemsPerPage);
-  }, [filteredAnime, currentPage, itemsPerPage]);
-
-  // Reset to page 1 when search changes
-  useEffect(() => {
-    setCurrentPage(1);
-  }, [searchQuery]);
+    const timer = setTimeout(() => {
+      handleSearch(searchQuery);
+    }, 500);
+    return () => clearTimeout(timer);
+  }, [searchQuery, handleSearch]);
 
   const handlePageChange = (page: number) => {
+    if (page < 1 || page > MAX_API_PAGES) return;
     setCurrentPage(page);
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
+
+  // Display either search results or paginated anime
+  const displayedAnime = isSearching ? searchResults : animeList;
 
   return (
     <div className="min-h-screen bg-background relative overflow-hidden">
@@ -136,9 +140,9 @@ export default function AnimePage() {
             className="text-muted-foreground text-lg md:text-xl max-w-2xl mx-auto leading-relaxed"
           >
             Jelajahi koleksi anime series terlengkap dengan kualitas terbaik.
-            {!isLoading && allAnime.length > 0 && (
+            {!isSearching && (
               <span className="inline-block px-2 py-0.5 ml-2 rounded-full bg-secondary text-secondary-foreground text-xs font-bold align-middle">
-                {allAnime.length}+ Judul
+                Halaman {currentPage} / {MAX_API_PAGES}
               </span>
             )}
           </motion.p>
@@ -180,7 +184,7 @@ export default function AnimePage() {
           {isLoading ? (
             <div className="space-y-8">
               <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-6">
-                {Array.from({ length: 12 }).map((_, i) => (
+                {Array.from({ length: 24 }).map((_, i) => (
                   <div key={i} className="space-y-3">
                     <div className="aspect-[2/3] rounded-xl bg-muted/50 animate-pulse" />
                     <div className="h-4 bg-muted/50 rounded animate-pulse w-3/4" />
@@ -188,7 +192,7 @@ export default function AnimePage() {
                 ))}
               </div>
             </div>
-          ) : paginatedAnime.length === 0 ? (
+          ) : displayedAnime.length === 0 ? (
             <motion.div 
               initial={{ opacity: 0, scale: 0.95 }}
               animate={{ opacity: 1, scale: 1 }}
@@ -199,7 +203,9 @@ export default function AnimePage() {
               </div>
               <h3 className="text-2xl font-bold mb-2">Tidak ditemukan</h3>
               <p className="text-muted-foreground">
-                Maaf, kami tidak dapat menemukan anime dengan kata kunci "{searchQuery}"
+                {isSearching 
+                  ? `Maaf, kami tidak dapat menemukan anime dengan kata kunci "${searchQuery}"`
+                  : 'Halaman ini kosong'}
               </p>
             </motion.div>
           ) : (
@@ -208,7 +214,7 @@ export default function AnimePage() {
               className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-6"
             >
               <AnimatePresence mode='popLayout'>
-                {paginatedAnime.map((anime, index) => (
+                {displayedAnime.map((anime, index) => (
                   <AnimeCardCompact 
                     key={anime.urlId} 
                     anime={anime} 
@@ -219,40 +225,91 @@ export default function AnimePage() {
             </motion.div>
           )}
 
-          {/* Pagination */}
-          {!isLoading && totalPages > 1 && (
+          {/* Pagination - Only show when not searching */}
+          {!isLoading && !isSearching && (
             <motion.div 
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               transition={{ delay: 0.5 }}
               className="mt-16 flex flex-col items-center gap-4"
             >
-              <div className="inline-flex items-center gap-2 p-2 bg-background/50 backdrop-blur-sm border border-border/50 rounded-full shadow-lg">
+              <div className="inline-flex items-center gap-1 p-2 bg-background/50 backdrop-blur-sm border border-border/50 rounded-full shadow-lg">
+                {/* First Page */}
                 <Button
                   variant="ghost"
                   size="icon"
-                  onClick={() => handlePageChange(Math.max(1, currentPage - 1))}
+                  onClick={() => handlePageChange(1)}
+                  disabled={currentPage === 1}
+                  className="rounded-full w-10 h-10 hover:bg-primary/10 hover:text-primary"
+                >
+                  <ChevronsLeft className="w-5 h-5" />
+                </Button>
+
+                {/* Previous Page */}
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  onClick={() => handlePageChange(currentPage - 1)}
                   disabled={currentPage === 1}
                   className="rounded-full w-10 h-10 hover:bg-primary/10 hover:text-primary"
                 >
                   <ChevronLeft className="w-5 h-5" />
                 </Button>
                 
-                <div className="px-4 font-medium text-sm text-muted-foreground">
-                  <span className="text-foreground font-bold">{currentPage}</span>
-                  <span className="mx-2">/</span>
-                  {totalPages}
+                {/* Page Number Input */}
+                <div className="flex items-center gap-2 px-2">
+                  <Input
+                    type="number"
+                    min={1}
+                    max={MAX_API_PAGES}
+                    value={currentPage}
+                    onChange={(e) => {
+                      const val = parseInt(e.target.value);
+                      if (val >= 1 && val <= MAX_API_PAGES) {
+                        handlePageChange(val);
+                      }
+                    }}
+                    className="w-16 h-8 text-center text-sm font-bold border-border/50 rounded-lg"
+                  />
+                  <span className="text-muted-foreground text-sm">/ {MAX_API_PAGES}</span>
                 </div>
                 
+                {/* Next Page */}
                 <Button
                   variant="ghost"
                   size="icon"
-                  onClick={() => handlePageChange(Math.min(totalPages, currentPage + 1))}
-                  disabled={currentPage === totalPages}
+                  onClick={() => handlePageChange(currentPage + 1)}
+                  disabled={currentPage === MAX_API_PAGES}
                   className="rounded-full w-10 h-10 hover:bg-primary/10 hover:text-primary"
                 >
                   <ChevronRight className="w-5 h-5" />
                 </Button>
+
+                {/* Last Page */}
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  onClick={() => handlePageChange(MAX_API_PAGES)}
+                  disabled={currentPage === MAX_API_PAGES}
+                  className="rounded-full w-10 h-10 hover:bg-primary/10 hover:text-primary"
+                >
+                  <ChevronsRight className="w-5 h-5" />
+                </Button>
+              </div>
+
+              {/* Quick Jump Buttons */}
+              <div className="flex flex-wrap justify-center gap-2">
+                {[1, 10, 25, 50, 75, 100].map(page => (
+                  <Button
+                    key={page}
+                    variant={currentPage === page ? "default" : "outline"}
+                    size="sm"
+                    onClick={() => handlePageChange(page)}
+                    className="rounded-full"
+                  >
+                    {page}
+                  </Button>
+                ))}
               </div>
             </motion.div>
           )}
