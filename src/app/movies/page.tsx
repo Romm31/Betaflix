@@ -27,16 +27,31 @@ export default function MoviesPage() {
       const collected: Anime[] = [];
       
       for (let i = 1; i <= 5; i++) {
-        try {
-          // Add a small delay between requests (except the first one)
-          if (i > 1) await new Promise(r => setTimeout(r, 300));
-          
-          const pageData = await getMovies(i);
-          collected.push(...pageData);
-        } catch (err) {
-          console.warn(`Failed to loop-load page ${i}, stopping early.`, err);
-          // If we hit an error (like rate limit), just stop trying to fetch more
-          break; 
+        let retries = 0;
+        const maxRetries = 3;
+        let success = false;
+
+        while (!success && retries < maxRetries) {
+          try {
+            // Add a small delay between requests to avoid rate limiting
+            // Increase delay if retrying
+            const delay = i === 1 && retries === 0 ? 0 : 300 + (retries * 1000);
+            if (delay > 0) await new Promise(r => setTimeout(r, delay));
+            
+            const pageData = await getMovies(i);
+            collected.push(...pageData);
+            success = true;
+          } catch (err) {
+            console.warn(`Failed to fetch movie page ${i} (attempt ${retries + 1})`, err);
+            retries++;
+          }
+        }
+
+        if (!success) {
+           console.error(`Could not fetch movie page ${i} after ${maxRetries} attempts.`);
+           // If page 1 fails completely, we might want to stop. 
+           // But if page 2 fails, we can keep page 1.
+           if (i === 1) break; 
         }
       }
       
