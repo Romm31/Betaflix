@@ -57,6 +57,21 @@ export async function getLatestAnime(page: number = 1, limit?: number): Promise<
   }
 }
 
+// Get recommended anime with pagination (supports up to page 100+)
+export async function getRecommendedAnime(page: number = 1, limit?: number): Promise<Anime[]> {
+  try {
+    const response = await fetchAPI<LatestAnimeResponse>(
+      `/anime/recommended?page=${page}`,
+      { revalidate: 300 }
+    );
+    const normalized = normalizeAnimeList(response || [], false);
+    return limit ? normalized.slice(0, limit) : normalized;
+  } catch (error) {
+    console.error('Failed to fetch recommended anime:', error);
+    return [];
+  }
+}
+
 // Get anime series only (excludes movies)
 export async function getAnimeSeriesOnly(page: number = 1, limit: number = MAX_ITEMS.ANIME_PER_PAGE): Promise<Anime[]> {
   const anime = await getLatestAnime(page);

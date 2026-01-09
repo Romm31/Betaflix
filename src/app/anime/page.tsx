@@ -3,7 +3,7 @@
 import { useState, useEffect, useCallback, useMemo } from 'react';
 import { Tv, Search, ChevronLeft, ChevronRight } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { getLatestAnime } from '@/lib/api';
+import { getRecommendedAnime } from '@/lib/api';
 import { Anime, MAX_ITEMS } from '@/lib/types';
 import { AnimeCardCompact } from '@/components/AnimeCard';
 import { GridSkeleton } from '@/components/Skeletons';
@@ -26,13 +26,28 @@ export default function AnimePage() {
       
       const responses = [];
       for (const page of pagesToFetch) {
-        try {
-          const res = await getLatestAnime(page);
-          responses.push(res);
-          // Add a small delay between requests to avoid rate limiting (429)
-          await new Promise(resolve => setTimeout(resolve, 300));
-        } catch (error) {
-          console.error(`Failed to fetch page ${page}`, error);
+        let retries = 0;
+        const maxRetries = 3;
+        let success = false;
+
+        while (!success && retries < maxRetries) {
+          try {
+            // Add delay between requests to avoid rate limiting
+            // Increase delay if retrying (exponential backoff)
+            const delay = page === 1 && retries === 0 ? 0 : 500 + (retries * 1000);
+            if (delay > 0) await new Promise(resolve => setTimeout(resolve, delay));
+
+            const res = await getRecommendedAnime(page);
+            responses.push(res);
+            success = true;
+          } catch (error) {
+            console.warn(`Failed to fetch page ${page} (attempt ${retries + 1})`, error);
+            retries++;
+          }
+        }
+        
+        if (!success) {
+           console.error(`Could not fetch anime page ${page} after ${maxRetries} attempts.`);
         }
       }
       const combined = responses.flat();

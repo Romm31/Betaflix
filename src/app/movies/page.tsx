@@ -26,7 +26,7 @@ export default function MoviesPage() {
       // We will loop from page 1 to 5
       const collected: Anime[] = [];
       
-      for (let i = 1; i <= 5; i++) {
+      for (let i = 1; i <= 10; i++) {
         let retries = 0;
         const maxRetries = 3;
         let success = false;
